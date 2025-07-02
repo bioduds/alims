@@ -4,6 +4,7 @@ The main brain that coordinates all AI capabilities and system interactions
 """
 
 import logging
+import time
 from typing import Dict, Any, Optional
 from datetime import datetime
 
@@ -17,6 +18,7 @@ from .system_controller import SystemController
 from .pattern_validator import PatternValidator
 from .proactive_suggestion_engine import ProactiveSuggestionEngine
 from .code_executor import code_executor, ai_execute_code, LAMBDA_TEMPLATES
+from .simple_algorithm_executor import SimpleAlgorithmExecutor
 
 # Import voice interface
 try:
@@ -27,6 +29,12 @@ except ImportError:
     VOICE_AVAILABLE = False
     VoiceInterface = None
     create_voice_interface = None
+
+# Import web search capability
+
+
+# Import enhanced logging
+from ..core.enhanced_logging import central_brain_logger, lambda_logger
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +60,9 @@ class CentralAIBrain:
         self.pattern_validator = None
         self.proactive_suggestion_engine = None
         self.voice_interface = None
+
+        # Simple Algorithm Executor for restricted code execution
+        self.simple_executor = SimpleAlgorithmExecutor()
 
         # State management
         self.is_running = False
@@ -1088,7 +1099,7 @@ Your core capabilities:
         except Exception as e:
             logger.error(f"Error getting voice status: {e}")
             return {"success": False, "error": str(e), "status": {}}
-    
+
     async def execute_dynamic_code(self, 
                                   code: str, 
                                   purpose: str = "general",
@@ -1109,7 +1120,44 @@ Your core capabilities:
         """
         try:
             logger.info(f"🧠 AI executing dynamic code for purpose: {purpose}")
-            
+
+            # Log the routing decision with enhanced logging
+            should_use_simple = self._should_use_simple_executor(code, purpose)
+            executor_type = (
+                "Simple Algorithm Executor"
+                if should_use_simple
+                else "Full Code Executor"
+            )
+
+            central_brain_logger.log_routing_decision(
+                code=code,
+                purpose=purpose,
+                decision=executor_type,
+                reasoning=f"Based on purpose '{purpose}' and code analysis",
+            )
+
+            # Check if we should use Simple Algorithm Executor
+            if should_use_simple:
+                logger.info("🔢 Using Simple Algorithm Executor for safe execution")
+                start_time = time.time()
+                result = await self.execute_simple_algorithm(
+                    code=code, inputs=context, expected_output_type="auto"
+                )
+                execution_time = time.time() - start_time
+
+                # Log the execution with enhanced logging
+                lambda_logger.log_lambda_execution(
+                    code=code,
+                    purpose=purpose,
+                    executor_type="simple",
+                    result=result,
+                    execution_time=execution_time,
+                )
+                return result
+
+            # Use full code executor for complex tasks
+            logger.info("⚙️ Using full Code Executor for complex execution")
+
             # Add system context
             execution_context = context or {}
             execution_context.update({
@@ -1118,7 +1166,7 @@ Your core capabilities:
                 'execution_purpose': purpose,
                 'timestamp': datetime.now().isoformat()
             })
-            
+
             if use_lambda_style:
                 # Execute as Lambda function
                 event = execution_context.get('event', {})
@@ -1127,7 +1175,7 @@ Your core capabilities:
             else:
                 # Execute as regular code
                 result = await ai_execute_code(code, purpose, execution_context)
-            
+
             # Check if result is None
             if result is None:
                 logger.error("❌ ai_execute_code returned None!")
@@ -1136,7 +1184,7 @@ Your core capabilities:
                     "error": "Code execution returned no result",
                     "execution_id": datetime.now().isoformat()
                 }
-            
+
             # Log execution for learning
             if result.get('success'):
                 logger.info(f"✅ Code execution successful for {purpose}")
@@ -1152,9 +1200,9 @@ Your core capabilities:
             else:
                 logger.warning(f"⚠️ Code execution failed: {result.get('error')}")
                 logger.warning(f"Full execution result: {result}")
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"❌ Error in execute_dynamic_code: {e}")
             return {
@@ -1162,7 +1210,7 @@ Your core capabilities:
                 "error": str(e),
                 "execution_id": datetime.now().isoformat()
             }
-    
+
     async def get_lambda_template(self, template_type: str) -> Dict[str, Any]:
         """
         Get a Lambda-style template for the AI to use as a starting point.
@@ -1191,7 +1239,7 @@ Your core capabilities:
                 "error": f"Unknown template type: {template_type}",
                 "available_templates": list(LAMBDA_TEMPLATES.keys())
             }
-    
+
     async def decide_code_execution(self, user_request: str, available_tools: list) -> Dict[str, Any]:
         """
         AI decides whether to use existing tools or write custom code.
@@ -1225,12 +1273,251 @@ Respond with:
             prompt=decision_prompt,
             system_prompt="You are an AI assistant that helps decide when to use custom code execution."
         )
-        
+
         # Parse the response (in a real implementation, this would be more structured)
         return {
             "decision": response,
             "timestamp": datetime.now().isoformat()
         }
+
+    def _should_use_simple_executor(self, code: str, purpose: str) -> bool:
+        """
+        Determine if code should use the Simple Algorithm Executor
+        instead of the full code executor.
+
+        Returns True for simple algorithmic tasks that match our restricted patterns.
+        """
+        # Check for complexity indicators first (higher priority)
+        code_lower = code.lower()
+        complex_indicators = [
+            "import requests",
+            "import urllib",
+            "import os",
+            "import subprocess",
+            "import sys",
+            "open(",
+            "file(",
+            "exec(",
+            "eval(",
+            "__import__",
+        ]
+
+        if any(indicator in code_lower for indicator in complex_indicators):
+            return False
+
+        # Check if purpose suggests simple algorithm
+        simple_purposes = [
+            "calculation",
+            "mathematical_calculation",
+            "algorithm",
+            "number_generation",
+            "list_generation",
+            "simple_sorting",
+            "basic_filtering",
+            "simple_statistics",
+        ]
+
+        if purpose.lower() in simple_purposes:
+            return True
+
+        # Check if code contains simple algorithm patterns
+        simple_patterns = [
+            "def calculate_",
+            "def generate_",
+            "def find_",
+            "def sort_",
+            "def filter_",
+            "def analyze_",
+            "prime",
+            "fibonacci",
+            "factorial",
+            "statistics",
+        ]
+
+        # If code contains these patterns and is relatively short (< 2000 chars)
+        if (
+            any(pattern in code_lower for pattern in simple_patterns)
+            and len(code) < 2000
+        ):
+            return True
+
+        return False
+
+    async def execute_simple_algorithm(
+        self,
+        code: str,
+        inputs: Optional[Dict[str, Any]] = None,
+        expected_output_type: str = "auto",
+    ) -> Dict[str, Any]:
+        """
+        Execute simple algorithm using the restricted Simple Algorithm Executor.
+        This provides safer, more predictable execution for basic algorithmic tasks.
+        """
+        try:
+            logger.info("🔢 Using Simple Algorithm Executor for restricted execution")
+
+            result = await self.simple_executor.execute_simple_algorithm(
+                code=code, inputs=inputs, expected_output_type=expected_output_type
+            )
+
+            # Log success/failure for learning
+            if result.get("success"):
+                logger.info(
+                    f"✅ Simple algorithm executed: {result.get('function_name')}"
+                )
+                if self.context_manager:
+                    await self.context_manager.update_context(
+                        {
+                            "simple_algorithm_execution": {
+                                "function_name": result.get("function_name"),
+                                "pattern_type": result.get("pattern_type"),
+                                "success": True,
+                                "timestamp": datetime.now().isoformat(),
+                            }
+                        }
+                    )
+            else:
+                logger.warning(f"⚠️ Simple algorithm failed: {result.get('error')}")
+
+            return result
+
+        except Exception as e:
+            logger.error(f"❌ Error in simple algorithm execution: {e}")
+            return {
+                "success": False,
+                "error": f"Simple algorithm execution error: {str(e)}",
+                "execution_id": f"simple_algo_error_{int(time.time())}",
+            }
+
+    def get_simple_algorithm_guidelines(self) -> Dict[str, Any]:
+        """
+        Get guidelines for Gemma on when and how to use the Simple Algorithm Executor.
+        This helps the AI understand the restrictions and appropriate use cases.
+        """
+        return {
+            "purpose": "Restricted execution for simple, focused algorithms only",
+            "when_to_use": [
+                "Mathematical calculations (primes, fibonacci, factorials)",
+                "List generation and basic data processing",
+                "Simple sorting and filtering operations",
+                "Basic statistical analysis",
+                "Number sequence generation",
+                "String processing algorithms",
+            ],
+            "restrictions": {
+                "max_execution_time": "5 seconds",
+                "no_file_operations": "Cannot read/write files",
+                "no_network": "No web requests or downloads",
+                "no_complex_imports": "Only basic math and built-ins",
+                "single_function": "Must contain exactly one function",
+                "clear_purpose": "Function name must be descriptive",
+            },
+            "function_naming": {
+                "must_start_with": [
+                    "calculate_",
+                    "generate_",
+                    "find_",
+                    "sort_",
+                    "filter_",
+                    "analyze_",
+                ],
+                "examples": [
+                    "calculate_prime_numbers(n)",
+                    "generate_fibonacci_sequence(count)",
+                    "analyze_number_statistics(numbers)",
+                ],
+            },
+            "allowed_patterns": self.simple_executor.get_allowed_patterns(),
+            "example_good_code": '''
+def calculate_prime_numbers(n):
+    """Generate first n prime numbers"""
+    primes = []
+    num = 2
+    while len(primes) < n:
+        is_prime = True
+        for i in range(2, int(num ** 0.5) + 1):
+            if num % i == 0:
+                is_prime = False
+                break
+        if is_prime:
+            primes.append(num)
+        num += 1
+    return primes
+''',
+            "advice_for_ai": [
+                "Use for simple, predictable algorithms only",
+                "Prefer this over full executor for basic math/data tasks",
+                "Always include function docstring",
+                "Keep functions focused and single-purpose",
+                "Return clear, usable results for further processing",
+            ],
+        }
+
+    async def get_execution_recommendations(self, user_request: str) -> Dict[str, Any]:
+        """
+        Analyze user request and recommend execution approach.
+        Helps Gemma decide between Simple Algorithm Executor vs full executor.
+        """
+        try:
+            analysis_prompt = f"""Analyze this user request and recommend the best execution approach:
+
+User Request: "{user_request}"
+
+Consider:
+1. Is this a simple algorithm that could use restricted execution?
+2. Does it require complex operations, file access, or network requests?
+3. What type of code would be needed?
+
+Respond with JSON:
+{{
+    "recommendation": "simple_algorithm" | "full_executor" | "existing_tools",
+    "reason": "brief explanation",
+    "algorithm_type": "mathematical_calculation" | "list_generation" | "data_processing" | "complex_task",
+    "confidence": 0.0-1.0,
+    "suggested_function_name": "descriptive_name_here",
+    "expected_inputs": {{"param": "type"}},
+    "expected_output": "description"
+}}"""
+
+            if self.ollama_client:
+                response = await self.ollama_client.generate_response(
+                    prompt=analysis_prompt,
+                    system_prompt="You are an AI that helps decide the best approach for code execution tasks.",
+                )
+
+                # Try to parse JSON from response
+                try:
+                    import json
+
+                    # Extract JSON from response
+                    json_start = response.find("{")
+                    json_end = response.rfind("}") + 1
+                    if json_start != -1 and json_end > json_start:
+                        analysis = json.loads(response[json_start:json_end])
+                        analysis["raw_response"] = response
+                        return analysis
+                except:
+                    pass
+
+                return {
+                    "recommendation": "analysis_failed",
+                    "raw_response": response,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            else:
+                return {
+                    "recommendation": "simple_algorithm",
+                    "reason": "Default to simple executor when AI unavailable",
+                    "confidence": 0.5,
+                }
+
+        except Exception as e:
+            logger.error(f"Error in execution recommendation: {e}")
+            return {
+                "recommendation": "simple_algorithm",
+                "reason": f"Error in analysis: {str(e)}",
+                "confidence": 0.3,
+            }
 
 
 # Utility functions

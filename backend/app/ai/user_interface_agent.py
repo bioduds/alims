@@ -9,6 +9,9 @@ from datetime import datetime
 from pathlib import Path
 import re
 
+# Import web search capability
+from ..intelligence.duckduckgo_search import web_search
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,6 +51,10 @@ Current context:
 - Active agents: {active_agents}
 - User message: {user_message}
 
+{web_search_info}
+
+When web search results are provided, use them to give more accurate, current, and comprehensive responses. Always incorporate relevant information from the search results into your answer.
+
 Respond helpfully and naturally to the user's message."""
 
     async def process_chat_message(
@@ -64,10 +71,30 @@ Respond helpfully and naturally to the user's message."""
                 message, context
             )
 
-            # First, check if this request needs code execution
-            needs_code = await self._check_needs_code_execution(message)
-            logger.info(f"Code execution check for message '{message}': {needs_code}")
-            
+            # Check if web search is needed first (prioritize over code execution for certain queries)
+            web_search_performed = False
+            if web_search and web_search.should_search_web(message):
+                web_search_results = await web_search.search_and_summarize(message)
+                if web_search_results and web_search_results.get("results"):
+                    logger.info(
+                        f"Web search found {len(web_search_results['results'])} results"
+                    )
+                    # Add web search results to interaction context
+                    if interaction_context is None:
+                        interaction_context = {}
+                    interaction_context["web_search_results"] = web_search_results[
+                        "summary"
+                    ]
+                    web_search_performed = True
+
+            # Check if this request needs code execution (but skip if web search was performed for informational queries)
+            needs_code = await self._check_needs_code_execution(
+                message, web_search_performed
+            )
+            logger.info(
+                f"Code execution check for message '{message}': {needs_code} (web search performed: {web_search_performed})"
+            )
+
             if needs_code:
                 # Handle code execution request
                 code_result = await self._handle_code_execution_request(message, interaction_context)
@@ -250,17 +277,33 @@ Respond helpfully and naturally to the user's message."""
         """Format the prompt template with current context"""
 
         try:
-            return self.prompt_template.format(
-                system_status=context.get("system_status", "operational"),
-                active_agents=context.get("active_agents", "unknown"),
-                user_profile=context.get("user_preferences", {}),
-                recent_activity=context.get("recent_activity", "none"),
-                conversation_history=context.get("conversation_patterns", {}),
-                user_message=message,
-            )
+            # Build base context
+            base_context = {
+                "system_status": context.get("system_status", "operational"),
+                "active_agents": context.get("active_agents", "unknown"),
+                "user_profile": context.get("user_preferences", {}),
+                "recent_activity": context.get("recent_activity", "none"),
+                "conversation_history": context.get("conversation_patterns", {}),
+                "user_message": message,
+            }
+
+            # Add web search results if available
+            web_search_results = context.get("web_search_results")
+            if web_search_results:
+                base_context["web_search_info"] = (
+                    f"\n\nWEB SEARCH RESULTS:\n{web_search_results}\n\nUse this information to provide more accurate and current responses."
+                )
+            else:
+                base_context["web_search_info"] = ""
+
+            return self.prompt_template.format(**base_context)
         except Exception as e:
             logger.error(f"Error formatting prompt: {e}")
-            return f"User message: {message}\n\nRespond helpfully."
+            # Include web search results in fallback
+            web_info = ""
+            if context.get("web_search_results"):
+                web_info = f"\n\nWeb Search Results:\n{context['web_search_results']}"
+            return f"User message: {message}{web_info}\n\nRespond helpfully."
 
     async def _learn_from_interaction(
         self, message: str, response: str, context: Dict[str, Any]
@@ -461,17 +504,42 @@ Respond helpfully and naturally to the user's message."""
                 "dynamic_code_execution",
             ],
         }
-    
-    async def _check_needs_code_execution(self, message: str) -> bool:
+
+    async def _check_needs_code_execution(
+        self, message: str, web_search_performed: bool = False
+    ) -> bool:
         """Check if the user request requires code execution"""
-        
+
         message_lower = message.lower()
-        
+
+        # If web search was performed for informational queries, skip code execution
+        if web_search_performed:
+            # Check if this is an informational query that should use web search results
+            informational_keywords = [
+                "weather",
+                "current",
+                "today",
+                "news",
+                "who is",
+                "what is",
+                "where is",
+                "when is",
+                "president",
+                "capital",
+                "population",
+            ]
+
+            if any(keyword in message_lower for keyword in informational_keywords):
+                logger.info(
+                    "Skipping code execution: informational query with web search results"
+                )
+                return False
+
         # Super direct check - if they say "calculate" and "prime", that's code execution
         if "calculate" in message_lower and "prime" in message_lower:
             logger.info("Code execution DEFINITELY needed: calculate + prime")
             return True
-            
+
         # Keywords that strongly suggest code execution is needed
         code_keywords = [
             "calculate", "compute", "algorithm", "prime number", "fibonacci",
@@ -479,7 +547,7 @@ Respond helpfully and naturally to the user's message."""
             "generate", "create", "plot", "graph", "statistics",
             "hash function", "implement", "code", "function"
         ]
-        
+
         # Direct check for code execution keywords
         for keyword in code_keywords:
             if keyword in message_lower:
@@ -491,13 +559,13 @@ Respond helpfully and naturally to the user's message."""
                 # Even without visualization, these keywords strongly suggest code execution
                 logger.info(f"Code execution needed: found keyword '{keyword}'")
                 return True
-        
+
         logger.info(f"No code execution keywords found in: {message}")
         return False
-    
+
     async def _handle_code_execution_request(self, message: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Handle a request that requires code execution"""
-        
+
         try:
             # Analyze what the user wants
             analysis_prompt = f"""Analyze this user request: "{message}"
@@ -512,15 +580,15 @@ OUTPUT_COUNT: [number or 'all']
 NEEDS_VISUALIZATION: [yes/no]
 VISUALIZATION_TYPE: [type or 'none']
 """
-            
+
             analysis = await self.central_brain.ollama_client.generate_response(
                 prompt=analysis_prompt,
                 system_prompt="You are analyzing user requirements. Be precise and specific."
             )
-            
+
             # Parse analysis
             needs_viz = "needs_visualization: yes" in analysis.lower()
-            
+
             # Get the AI to write the code with visualization if needed
             code_prompt = f"""Based on this user request: "{message}"
 
@@ -535,12 +603,12 @@ Write Python code to solve this problem.
 - Print clear, formatted output
 
 Return ONLY the executable Python code."""
-            
+
             code = await self.central_brain.ollama_client.generate_response(
                 prompt=code_prompt,
                 system_prompt="You are a Python code generator. Return ONLY executable Python code, no explanations. Always include necessary imports like 'import matplotlib.pyplot as plt' at the top."
             )
-            
+
             # Clean up the code (remove markdown if present)
             logger.info(f"Raw code from AI: {code[:200]}...")
             code = code.strip()
@@ -552,24 +620,24 @@ Return ONLY the executable Python code."""
                 code = code[:-3]
             code = code.strip()
             logger.info(f"Cleaned code: {code[:200]}...")
-            
+
             # Execute the code with visualization support
             # Always use visualization purpose when there's a chart/plot request
             use_viz_purpose = needs_viz or any(word in message.lower() for word in ["chart", "plot", "graph", "visualiz"])
             logger.info(f"Executing code with purpose: {'visualization' if use_viz_purpose else 'calculation'}")
-            
+
             execution_result = await self.central_brain.execute_dynamic_code(
                 code=code,
                 purpose="visualization" if use_viz_purpose else "calculation",
                 context={"user_request": message}
             )
-            
+
             if execution_result.get("success"):
                 # Format the response
                 output = execution_result.get("stdout", "").strip()
                 result = execution_result.get("result", "")
                 visualization = execution_result.get("visualization")
-                
+
                 response_message = f"""I understand you want {self._extract_requirement_summary(message)}. Let me create that for you.
 
 **Code executed:**
@@ -583,9 +651,9 @@ Return ONLY the executable Python code."""
                 # Add visualization info if present
                 if visualization:
                     response_message += f"\n\n📊 **Visualization created:** {visualization.get('type', 'chart')}"
-                
+
                 response_message += "\n\nWould you like me to modify the implementation or create additional visualizations?"
-                
+
                 return {
                     "success": True,
                     "message": response_message,
@@ -596,20 +664,20 @@ Return ONLY the executable Python code."""
                 # Code execution failed
                 error = execution_result.get("error", "Unknown error")
                 stderr = execution_result.get("stderr", "")
-                
+
                 # Try to provide helpful error resolution
                 error_message = f"I encountered an error while executing the code:\n\n**Error:** {error}"
                 if stderr:
                     error_message += f"\n\n**Details:** {stderr}"
-                
+
                 error_message += "\n\nLet me try a different approach or would you like to modify the request?"
-                
+
                 return {
                     "success": False,
                     "message": error_message,
                     "execution_result": execution_result
                 }
-                
+
         except Exception as e:
             logger.error(f"Error in code execution handler: {e}")
             return {
@@ -617,11 +685,11 @@ Return ONLY the executable Python code."""
                 "message": "I encountered an error while trying to execute code for your request. Could you please rephrase or provide more details?",
                 "error": str(e)
             }
-    
+
     def _extract_requirement_summary(self, message: str) -> str:
         """Extract a summary of what the user wants"""
         message_lower = message.lower()
-        
+
         if "hash function" in message_lower:
             if "3 test" in message_lower:
                 return "a hash function using prime numbers with 3 test results"
@@ -634,5 +702,5 @@ Return ONLY the executable Python code."""
             return "Fibonacci sequence"
         elif "factorial" in message_lower:
             return "factorial calculation"
-        
+
         return "your calculation"

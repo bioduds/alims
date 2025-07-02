@@ -1,0 +1,52 @@
+# SearXNG Configuration for CelFlow
+use_default_settings: true
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "e7045010bb255b38770b51f142c93c599189990f3027cbe1ad39367589057b3b"
+  base_url: "http://localhost:8080/"
+  image_proxy: true
+
+ui:
+  static_use_hash: true
+  default_theme: simple
+  default_locale: ""
+  theme_args:
+    simple_style: auto
+
+search:
+  safe_search: 1
+  autocomplete: "google"
+  default_lang: "en"
+  max_page: 0
+
+engines:
+  - name: google
+    engine: google
+    use_mobile_ui: false
+    
+  - name: bing
+    engine: bing
+    
+  - name: duckduckgo
+    engine: duckduckgo
+    
+  - name: startpage
+    engine: startpage
+    
+  - name: wikipedia
+    engine: wikipedia
+    
+  - name: github
+    engine: github
+    
+  - name: stackoverflow
+    engine: stackoverflow
+
+enabled_plugins:
+  - 'Hash plugin'
+  - 'Search on category select'
+  - 'Self Information'
+  - 'Tracker URL remover'
+  - 'Ahmia blacklist'
