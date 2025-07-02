@@ -3,15 +3,15 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "celflow"
+name = "alims"
 version = "0.1.0"
-description = "CelFlow - Self-Creating AI Operating System"
+description = "ALIMS - Advanced Language Intelligence Management System"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "CelFlow Team", email = "team@celflow.com"}
+    {name = "ALIMS Team", email = "team@alims.ai"}
 ]
-keywords = ["ai", "automation", "agents", "operating-system", "machine-learning"]
+keywords = ["ai", "agents", "tool-calling", "workflow", "gemma", "ollama", "intelligence"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

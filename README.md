@@ -1,393 +1,256 @@
-# CelFlow - Self-Creating AI Operating System
+# ALIMS - Advanced Language Intelligence Management System
 
-CelFlow is a revolutionary AI system that creates specialized agents based on your behavior patterns. It features a beautiful Tauri desktop application with real-time analytics and an integrated chat interface.
+## Overview
 
-## Features
+ALIMS (Advanced Language Intelligence Management System) is a sophisticated AI agent platform built on top of the CelFlow architecture. It features a powerful Gemma 3:4B-based agent with advanced tool-calling capabilities, workflow orchestration, and web search integration.
 
-- **Intelligent Agent Creation**: Automatically creates specialized AI agents based on your workflow patterns
-- **Beautiful Desktop Interface**: Modern Tauri app with real-time analytics and integrated chat
-- **Pattern Evolution**: Continuously learns and adapts to your behavior
-- **Complete Privacy**: All processing happens locally on your machine
-- **Lightweight**: 5-12MB footprint vs 150MB+ alternatives
+## Key Features
 
-### 🚀 New Features (Phase 1 Complete!)
+### 🚀 Enhanced AI Agent System
 
-- **🎨 Advanced Visualization Engine**: 
-  - 10+ chart types (line, bar, pie, scatter, radar, network graphs, heatmaps)
-  - Real-time data streaming with live updates
-  - D3.js, Chart.js, and Plotly.js integration
-  - Interactive visualizations with zoom, pan, and drill-down
+- **Smart Tool Calling**: Modular tool system with dynamic discovery and execution
+- **Workflow Orchestration**: Multi-step task decomposition and intelligent planning
+- **Web Search Integration**: Real-time web search using DuckDuckGo with fallback mechanisms
+- **Safe Code Execution**: Sandboxed Python execution with mandatory visualization output
+- **Context Management**: Advanced context preservation across tool calls and sessions
 
-- **🧠 AI Lambda Capability**: 
-  - Dynamic code execution sandbox (like AWS Lambda but local)
-  - AI can write and execute Python code on-demand
-  - Secure sandbox with resource limits and safety validation
-  - Perfect for complex calculations, custom algorithms, and data processing
+### 🛠 Core Components
 
-- **📊 Multimodal Processing**:
-  - Image analysis and screenshot capture
-  - CSV/JSON/Excel data processing with AI insights
-  - Code analysis for Python, JavaScript, TypeScript
-  - PDF and document text extraction
-  - Automatic visualization suggestions
+#### Tool System (`backend/app/ai/enhanced_tool_system.py`)
 
-- **💬 Enhanced Chat-Stage Coordination**:
-  - AI always talks via chat AND shows via stage
-  - Clean interface with on-demand visualizations
-  - Context-aware responses with conversation memory
-  - Proactive suggestions based on usage patterns
+- Dynamic tool registry with type-safe parameter validation
+- Category-based tool organization (web_search, code_execution, etc.)
+- Performance monitoring and execution statistics
+- Sandboxed execution environment with comprehensive error handling
 
-## Installation
+#### Workflow Engine (`backend/app/ai/enhanced_agent_workflow.py`)
 
-1. Clone the repository:
-```bash
-git clone https://github.com/celflow/celflow.git
-cd celflow
-```
+- Automatic task decomposition into executable steps
+- Dependency management and step execution ordering
+- Dynamic workflow adaptation based on results
+- Intelligent result synthesis and context preservation
 
-2. Install dependencies:
-```bash
-# Python dependencies
-python3 -m venv celflow_env
-source celflow_env/bin/activate
-pip install -r backend/requirements/base.txt
+#### Enhanced User Interface Agent (`backend/app/ai/enhanced_user_interface_agent.py`)
 
-# Frontend dependencies
-cd frontend/desktop
-npm install
-```
+- Smart context analysis to determine tool requirements
+- User pattern learning and preference adaptation
+- Graceful fallback mechanisms for robust operation
+- Voice command support and proactive assistance
 
-3. Install Tauri requirements:
-- Node.js and npm
-- Rust and Cargo
-- Tauri CLI (`cargo install tauri-cli`)
+### 🔧 Technical Architecture
 
-## Usage
+#### Agent Capabilities
 
-1. Start CelFlow:
-```bash
-./launch_celflow.sh start
-```
+- **Model**: Gemma 3:4B via Ollama integration
+- **Tool Calling**: JSON-based structured responses with error recovery
+- **Web Search**: DuckDuckGo instant answers with HTML scraping fallback
+- **Code Execution**: Whitelisted algorithms with mandatory visualization
+- **Workflow Management**: Multi-step task orchestration with state management
 
-2. The Tauri desktop app will launch automatically, providing:
-- Real-time system analytics
-- Pattern evolution visualization
-- Integrated chat interface
-- Agent management
-- System configuration
+#### Integration Layer
 
-3. Stop CelFlow:
-```bash
-./launch_celflow.sh stop
-```
+- **Backward Compatibility**: Seamless integration with existing CentralAIBrain
+- **Feature Detection**: Automatic capability detection and graceful degradation
+- **Error Handling**: Comprehensive error recovery and user feedback
+- **Performance Monitoring**: Detailed logging and execution metrics
 
-## Architecture
-
-CelFlow consists of several key components:
-
-1. **Main System**: Core Python backend that handles:
-   - Event capture and processing
-   - Pattern detection and analysis
-   - Agent creation and management
-
-2. **Desktop App**: Beautiful Tauri interface featuring:
-   - Real-time analytics dashboard
-   - Integrated chat interface
-   - Pattern visualization
-   - System configuration
-   - Agent management
-
-3. **AI Components**:
-   - Central AI Brain with Gemma 3:4b for coordinating agents
-   - Pattern detection system with advanced clustering
-   - Agent specialization logic with embryo training
-   - Dynamic code execution sandbox (Lambda capability)
-   - Multimodal processing for images, data, and code
-   - Real-time visualization engine
-
-## Development
-
-1. Start in development mode:
-```bash
-./launch_celflow.sh start
-```
-
-2. The system will:
-- Launch the main Python backend
-- Start the Tauri desktop app in dev mode
-- Enable hot reloading for frontend changes
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-Copyright © 2024 CelFlow. All rights reserved.
-
-## 🧬 What is CelFlow?
-
-CelFlow represents a new paradigm in personal AI - instead of using pre-built assistants, it grows its own agents based on your actual usage patterns. Think of it as an AI ecosystem that evolves alongside your digital life.
-
-### Key Features
-
-- **Silent Learning**: Monitors your system activity without interruption
-- **Agent Evolution**: Develops specialized AI agents based on your patterns  
-- **Privacy-First**: All processing happens locally on your machine
-- **Adaptive Intelligence**: Continuously learns and improves over time
-- **Seamless Integration**: Works invisibly in the background
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
-- macOS 10.15+ (Catalina or later)
-- Python 3.9+
-- 4GB+ RAM recommended
-- Accessibility permissions (for system monitoring)
+- Python 3.13+
+- Ollama with Gemma 3:4B model
+- Virtual environment (recommended)
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/celflow/celflow.git
-   cd celflow
-   ```
-
-2. **Set up the environment**
-   ```bash
-   # Create virtual environment
-   python3 -m venv environments/celflow_env
-   source environments/celflow_env/bin/activate
-   
-   # Install dependencies
-   pip install -r backend/requirements/base.txt
-   ```
-
-3. **Grant permissions**
-   - Go to System Preferences → Security & Privacy → Privacy
-   - Enable "Accessibility" for Terminal or your IDE
-   - Enable "Full Disk Access" if prompted
-
-4. **Start CelFlow**
-   ```bash
-   ./launch_celflow.sh start
-   ```
-
-## 📊 System Architecture
-
-CelFlow consists of several integrated components:
-
-- **Event Capture**: Monitors system events and user interactions
-- **Embryo Pool**: Manages developing agent patterns
-- **Central AI Brain**: Coordinates learning and decision-making
-- **Agent Manager**: Handles agent lifecycle and specialization
-- **System Tray**: Provides user interface and controls
-
-## 🎯 How It Works
-
-1. **Observation Phase**: CelFlow silently monitors your digital activities
-2. **Pattern Recognition**: Identifies recurring patterns in your behavior
-3. **Embryo Development**: Creates potential agents based on detected patterns
-4. **Agent Birth**: Specialized agents emerge when patterns reach maturity
-5. **Continuous Evolution**: Agents adapt and improve based on feedback
-
-## 🧠 AI Lambda Capability
-
-CelFlow's AI can now write and execute custom Python code on-demand, similar to AWS Lambda but running locally:
-
-### When AI Uses Code Execution
-
-The AI automatically recognizes when to use code execution for:
-- Complex mathematical calculations (prime numbers, Fibonacci, factorials)
-- Data processing and transformation
-- Custom algorithm implementation
-- Statistical analysis and machine learning
-- Dynamic visualization generation
-
-### Example Interactions
-
-**User**: "Calculate the first 20 prime numbers"
-**AI**: *Writes and executes code, returns actual results*
-
-**User**: "Analyze this CSV file and show me correlations"
-**AI**: *Processes data with pandas, generates visualization*
-
-**User**: "Create a custom sorting algorithm for my specific needs"
-**AI**: *Implements and tests the algorithm in real-time*
-
-### Security Features
-
-- AST-based code validation prevents dangerous operations
-- Resource limits (memory and execution time)
-- Sandboxed execution environment
-- Whitelisted imports only
-- No file system or network access
-
-## 🛠️ Usage
-
-### Basic Commands
+1. **Clone and Setup Environment**
 
 ```bash
-# Start the system
-./launch_celflow.sh start
-
-# Check status
-./launch_celflow.sh status
-
-# Stop the system
-./launch_celflow.sh stop
-
-# Restart everything
-./launch_celflow.sh restart
-
-# View logs
-./launch_celflow.sh logs
+git clone <repository-url> alims
+cd alims
+python -m venv alims_env
+source alims_env/bin/activate  # On Windows: alims_env\Scripts\activate
 ```
 
-### System Tray
-
-CelFlow runs in your system tray with a 🧬 icon. Right-click to access:
-
-- System status and statistics
-- Agent management controls
-- Learning toggle (pause/resume)
-- Configuration options
-- Logs and diagnostics
-
-### Dashboard
-
-Access the web dashboard at `http://localhost:8080` to view:
-
-- Real-time system activity
-- Agent development progress
-- Pattern evolution graphs
-- System performance metrics
-
-## 🔧 Configuration
-
-CelFlow can be configured through YAML files in the `config/` directory:
-
-- `default.yaml`: Core system settings
-- `ai_config.yaml`: AI model and learning parameters
-- `emergent_agents.yaml`: Agent templates and evolution rules
-
-## 📈 Development Phases
-
-CelFlow development follows a structured approach:
-
-### Phase 1: Real Visualization Engine Foundation ✅ COMPLETE!
-- ✅ Advanced visualization library integration (Chart.js, D3.js, Plotly.js)
-- ✅ 10+ interactive chart types with real-time updates
-- ✅ Live data streaming from CelFlow systems
-- ✅ Network graphs for clustering and relationships
-- ✅ Heatmaps and 3D visualization support
-
-### Phase 1.6: Multimodal AI Capabilities ✅ COMPLETE!
-- ✅ Image processing and screenshot analysis
-- ✅ CSV/JSON/Excel file processing with AI insights
-- ✅ Code analysis and documentation generation
-- ✅ PDF and document text extraction
-- ✅ Mermaid diagram generation
-
-### Phase 1.5: Context & Memory System ✅ COMPLETE!
-- ✅ Persistent conversation memory
-- ✅ Context-aware responses
-- ✅ Session management
-- ✅ Smart context pruning
-
-### NEW: AI Lambda Capability ✅ COMPLETE!
-- ✅ Dynamic code execution sandbox
-- ✅ AI can write and execute Python code on-demand
-- ✅ Secure execution with resource limits
-- ✅ Lambda-style event-driven functions
-- ✅ Matplotlib visualization generation
-
-### Phase 2: Enhanced Central AI Agent 🔄 NEXT
-- Multi-modal response system
-- Intent classification engine
-- System introspection capabilities
-- Dynamic visualization generation
-- Proactive insights and suggestions
-
-### Phase 3: Web Search & Context Intelligence 📋
-- Web search API integration
-- Information extraction and summarization
-- Smart context management
-- Knowledge base building
-- Cross-domain knowledge linking
-
-## 🔒 Privacy & Security
-
-CelFlow is designed with privacy as a core principle:
-
-- **Local Processing**: All AI processing happens on your device
-- **No Data Transmission**: Your data never leaves your machine
-- **Sensitive Content Filtering**: Automatically excludes passwords, financial data
-- **Granular Controls**: Fine-tune what gets monitored
-- **Transparent Operation**: Full visibility into system activities
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details.
-
-### Development Setup
+2. **Install Dependencies**
 
 ```bash
-# Install development dependencies
-pip install -r backend/requirements/dev.txt
-
-# Run tests
-python -m pytest backend/tests/
-
-# Code formatting
-black backend/
-flake8 backend/
+pip install -r backend/requirements/base.txt
+pip install -r backend/requirements/clustering.txt
+pip install -r backend/requirements/visual.txt
 ```
 
-## 📚 Documentation
+3. **Configure Ollama**
 
-- [Architecture Overview](docs/architecture/ARCHITECTURE.md)
-- [Agent Development Guide](docs/guides/AGENT_DEVELOPMENT.md)
-- [API Reference](docs/api/README.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
+```bash
+ollama pull gemma2:27b  # or gemma2:9b for faster performance
+```
 
-## 🐛 Troubleshooting
+4. **Launch ALIMS**
 
-### Common Issues
+```bash
+./launch_celflow.sh
+```
 
-**Permission Denied Errors**
-- Ensure Accessibility permissions are granted
-- Try running with `sudo` if needed
+### Usage Examples
 
-**High CPU Usage**
-- Check system resource limits in config
-- Reduce monitoring frequency if needed
+#### Web Search Integration
 
-**Agents Not Developing**
-- Verify sufficient activity patterns
-- Check embryo development thresholds
+```python
+# The agent automatically uses web search for informational queries
+user: "What are the latest developments in quantum computing?"
+# Agent will search the web and provide comprehensive, up-to-date information
+```
 
-### Getting Help
+#### Code Execution with Visualization
 
-- Check the [Issues](https://github.com/celflow/celflow/issues) page
-- Join our [Discord Community](https://discord.gg/celflow)
-- Email support: help@celflow.com
+```python
+# Safe code execution with mandatory visual output
+user: "Generate a visualization of prime numbers up to 100"
+# Agent will execute safe Python code and create a matplotlib visualization
+```
 
-## 📄 License
+#### Multi-step Workflow
 
-CelFlow is released under the MIT License. See [LICENSE](LICENSE) for details.
+```python
+# Complex task decomposition
+user: "Research the latest AI trends and create a summary with charts"
+# Agent will: 1) Search web for AI trends, 2) Analyze data, 3) Create visualizations
+```
 
-## 🙏 Acknowledgments
+## Configuration
 
-- Built with [Ollama](https://ollama.ai) for local AI processing
-- Uses [Tauri](https://tauri.app) for desktop integration
-- Inspired by biological evolution and emergence
+### AI Configuration (`config/ai_config.yaml`)
+
+- Model selection and parameters
+- Tool availability and permissions
+- Workflow orchestration settings
+- Performance and safety limits
+
+### Agent Behavior
+
+- Tool calling preferences
+- Context management settings
+- User interaction patterns
+- Fallback mechanisms
+
+## Development
+
+### Project Structure
+
+```
+alims/
+├── backend/
+│   ├── app/
+│   │   ├── ai/                    # Enhanced AI agents and tools
+│   │   ├── core/                  # Core system components
+│   │   ├── intelligence/          # Web search and analysis
+│   │   └── ...
+│   ├── requirements/              # Dependency management
+│   └── scripts/                   # Launch and utility scripts
+├── config/                        # Configuration files
+├── docs/                          # Documentation
+└── tools/                         # Development and testing tools
+```
+
+### Key Files
+
+- `backend/app/ai/enhanced_tool_system.py` - Tool registry and execution
+- `backend/app/ai/enhanced_agent_workflow.py` - Workflow orchestration
+- `backend/app/ai/enhanced_user_interface_agent.py` - Main agent interface
+- `backend/app/ai/enhanced_integration.py` - Integration layer
+- `backend/app/intelligence/duckduckgo_search.py` - Web search implementation
+
+### Testing
+
+```bash
+# Run component tests
+python test_enhanced_components.py
+
+# Run integration tests
+python test_enhanced_agent.py
+
+# Run live system tests
+python test_live_enhanced_integration.py
+
+# Demo the enhanced system
+python enhanced_agent_demo.py
+```
+
+## Advanced Features
+
+### MCP Server Readiness
+
+ALIMS is designed with Model Context Protocol (MCP) integration in mind:
+
+- Standardized tool interfaces
+- Structured data exchange protocols
+- External system integration capabilities
+- Scalable architecture for multi-agent environments
+
+### Performance Optimization
+
+- HybridCache integration for improved model performance
+- Streaming responses for real-time interaction
+- Context window management for long conversations
+- Efficient tool call batching and parallelization
+
+### Security and Safety
+
+- Sandboxed code execution environment
+- Whitelisted algorithm restrictions
+- Input validation and sanitization
+- Comprehensive audit logging
+- User permission management
+
+## Roadmap
+
+### Phase 1: Current (Complete)
+
+- ✅ Enhanced tool system with registry
+- ✅ Workflow orchestration engine
+- ✅ Web search integration
+- ✅ Safe code execution
+- ✅ Integration layer
+
+### Phase 2: Advanced Features
+
+- [ ] MCP server/client implementation
+- [ ] Multi-agent collaboration
+- [ ] Advanced workflow patterns
+- [ ] Performance optimization
+- [ ] Enhanced security hardening
+
+### Phase 3: Production Deployment
+
+- [ ] Scalable deployment architecture
+- [ ] User management and authentication
+- [ ] Enterprise integration features
+- [ ] Advanced analytics and monitoring
+- [ ] Mobile and web interfaces
+
+## Contributing
+
+We welcome contributions! Please see our contributing guidelines for details on:
+
+- Code style and standards
+- Testing requirements
+- Documentation standards
+- Pull request process
+
+## License
+
+[License information to be added]
+
+## Support
+
+For support and questions:
+
+- Create an issue in the repository
+- Check the documentation in `docs/`
+- Review the implementation summaries and plans
 
 ---
 
-**CelFlow** - Where AI evolves with you 🧬 
+**ALIMS** - Advancing the future of intelligent agent systems through sophisticated tool calling, workflow orchestration, and seamless integration capabilities.
