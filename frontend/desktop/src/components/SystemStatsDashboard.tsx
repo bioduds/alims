@@ -73,7 +73,7 @@ const SystemStatsDashboard: React.FC = () => {
         setError('Failed to fetch system statistics');
       }
     } catch (err) {
-      setError('Error connecting to CelFlow API');
+      setError('Error connecting to ALims API');
       console.error('System stats fetch error:', err);
     } finally {
       setLoading(false);
@@ -192,7 +192,7 @@ const SystemStatsDashboard: React.FC = () => {
     <div className="h-full p-6 bg-gradient-to-br from-gray-800 to-gray-900 overflow-auto">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white mb-2">🖥️ System Statistics Dashboard</h2>
-        <p className="text-gray-400">Real-time CelFlow system monitoring • Updated {new Date(stats.timestamp).toLocaleTimeString()}</p>
+        <p className="text-gray-400">Real-time ALims system monitoring • Updated {new Date(stats.timestamp).toLocaleTimeString()}</p>
       </div>
 
       {/* Key Metrics Row */}

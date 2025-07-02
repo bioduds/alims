@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CelFlow Live Agent System
+ALims Live Agent System
 
-Run the complete CelFlow system with real-time agent monitoring.
+Run the complete ALims system with real-time agent monitoring.
 This provides a comprehensive dashboard for monitoring agent births,
 system performance, and real-time event processing.
 """
@@ -18,11 +18,11 @@ from pathlib import Path
 # Add project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from backend.app.system.system_integration import CelFlowSystemIntegration
+from backend.app.system.system_integration import ALimsSystemIntegration
 
 
-class CelFlowLiveMonitor:
-    """Live monitoring and dashboard for CelFlow agents"""
+class ALimsLiveMonitor:
+    """Live monitoring and dashboard for ALims agents"""
     
     def __init__(self):
         self.running = False
@@ -38,12 +38,12 @@ class CelFlowLiveMonitor:
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
-        self.logger = logging.getLogger('CelFlowLiveMonitor')
+        self.logger = logging.getLogger('ALimsLiveMonitor')
     
     async def start_system(self):
-        """Start the complete CelFlow system"""
+        """Start the complete ALims system"""
         try:
-            self.logger.info("🚀 Initializing CelFlow System Integration...")
+            self.logger.info("🚀 Initializing ALims System Integration...")
             
             # Configuration for the system
             config = {
@@ -60,18 +60,18 @@ class CelFlowLiveMonitor:
                 "embryo_pool_size": 20
             }
             
-            print("🚀 Starting Complete CelFlow System...")
+            print("🚀 Starting Complete ALims System...")
             print("=" * 60)
             
             # Initialize system integration
-            self.system_integration = CelFlowSystemIntegration(config)
+            self.system_integration = ALimsSystemIntegration(config)
             
             # Start all system components
             await self.system_integration.start()
             
             self.running = True
             
-            print("✅ CelFlow System Online!")
+            print("✅ ALims System Online!")
             print("🎭 Monitoring agent births and system performance...")
             print("🔄 Press Ctrl+C to stop the system")
             print("=" * 60)
@@ -80,7 +80,7 @@ class CelFlowLiveMonitor:
             await self._monitoring_loop()
             
         except Exception as e:
-            self.logger.error(f"Failed to start CelFlow system: {e}")
+            self.logger.error(f"Failed to start ALims system: {e}")
             raise
     
     async def _monitoring_loop(self):
@@ -106,7 +106,7 @@ class CelFlowLiveMonitor:
     
     async def _show_live_dashboard(self):
         """Display live system dashboard"""
-        print("\n🎭 CELFLOW LIVE AGENT DASHBOARD")
+        print("\n🎭 ALIMS LIVE AGENT DASHBOARD")
         print("=" * 50)
         
         # System uptime
@@ -139,25 +139,25 @@ class CelFlowLiveMonitor:
     
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully"""
-        print("\n🛑 Stopping CelFlow system...")
+        print("\n🛑 Stopping ALims system...")
         self.running = False
     
     async def stop_system(self):
-        """Stop the CelFlow system gracefully"""
+        """Stop the ALims system gracefully"""
         if self.system_integration:
             try:
                 await self.system_integration.stop()
-                print("✅ CelFlow system stopped gracefully")
+                print("✅ ALims system stopped gracefully")
             except Exception as e:
                 self.logger.error(f"Error stopping system: {e}")
 
 
 def print_banner():
-    """Print the CelFlow banner"""
+    """Print the ALims banner"""
     banner = """
     ╔══════════════════════════════════════════════════════════════╗
     ║                                                              ║
-    ║    🧬 CelFlow Live Agent System - Real-Time Monitor         ║
+    ║    🧬 ALims Live Agent System - Real-Time Monitor         ║
     ║                                                              ║
     ║    • Real-time agent birth monitoring                       ║
     ║    • System performance tracking                            ║
@@ -173,7 +173,7 @@ async def main():
     """Main entry point"""
     print_banner()
     
-    monitor = CelFlowLiveMonitor()
+    monitor = ALimsLiveMonitor()
     
     try:
         await monitor.start_system()
@@ -186,24 +186,24 @@ async def main():
         await monitor.stop_system()
 
 
-def stop_celflow_system():
-    """Stop the CelFlow system"""
+def stop_alims_system():
+    """Stop the ALims system"""
     import os
     import psutil
     
-    print("🛑 Shutting down CelFlow system...")
+    print("🛑 Shutting down ALims system...")
     
-    # Find and terminate CelFlow processes
+    # Find and terminate ALims processes
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
             cmdline = ' '.join(proc.info['cmdline'] or [])
-            if 'celflow' in cmdline.lower() or 'run_celflow_live' in cmdline:
+            if 'alims' in cmdline.lower() or 'run_alims_live' in cmdline:
                 print(f"Terminating process {proc.info['pid']}: {proc.info['name']}")
                 proc.terminate()
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
     
-    print("✅ CelFlow system stopped")
+    print("✅ ALims system stopped")
 
 
 if __name__ == "__main__":
@@ -211,10 +211,10 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[logging.FileHandler("celflow_live.log"), logging.StreamHandler()],
+        handlers=[logging.FileHandler("alims_live.log"), logging.StreamHandler()],
     )
     
-    monitor = CelFlowLiveMonitor()
+    monitor = ALimsLiveMonitor()
     
     try:
         asyncio.run(monitor.start_system())

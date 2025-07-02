@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow System Integration - Phase 3
+ALims System Integration - Phase 3
 
 Main coordinator for macOS system integration:
 - Orchestrates tray app, event capture, and agent interfaces
@@ -20,16 +20,16 @@ from pathlib import Path
 
 from ..core.agent_manager import AgentManager
 from ..core.embryo_pool import EmbryoPool
-from .macos_tray import create_tray_app, CelFlowTrayApp
+from .macos_tray import create_tray_app, AlimsTrayApp
 from .event_capture import SystemEventCapture
 from .high_performance_capture import HighPerformanceEventCapture
 from .agent_interface import create_agent_interface, AgentChatInterface
 from .permissions import check_system_permissions, request_permissions
 
 
-class CelFlowSystemIntegration:
+class ALimsSystemIntegration:
     """
-    Central integration hub for the CelFlow system.
+    Central integration hub for the ALims system.
     
     This class coordinates all major system components:
     - Event capture and processing
@@ -41,14 +41,14 @@ class CelFlowSystemIntegration:
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.logger = logging.getLogger("CelFlowSystem")
+        self.logger = logging.getLogger("ALimsSystem")
 
         # Core components
         self.embryo_pool: Optional[EmbryoPool] = None
         self.agent_manager: Optional[AgentManager] = None
 
         # System integration components
-        self.tray_app: Optional[CelFlowTrayApp] = None
+        self.tray_app: Optional[AlimsTrayApp] = None
         self.event_capture: Optional[SystemEventCapture] = None
         self.agent_interface: Optional[AgentChatInterface] = None
 
@@ -79,7 +79,7 @@ class CelFlowSystemIntegration:
     async def initialize(self) -> bool:
         """Initialize all system components"""
         try:
-            self.logger.info("🚀 Initializing CelFlow System Integration...")
+            self.logger.info("🚀 Initializing ALims System Integration...")
 
             # Check system permissions
             if not await self._check_permissions():
@@ -96,7 +96,7 @@ class CelFlowSystemIntegration:
                 self.logger.error("❌ Failed to initialize system components")
                 return False
 
-            self.logger.info("✅ CelFlow System Integration initialized successfully")
+            self.logger.info("✅ ALims System Integration initialized successfully")
             return True
 
         except Exception as e:
@@ -104,13 +104,13 @@ class CelFlowSystemIntegration:
             return False
 
     async def start(self):
-        """Start the CelFlow system"""
+        """Start the ALims system"""
         try:
             if self.is_running:
                 self.logger.warning("System is already running")
                 return
 
-            self.logger.info("🎯 Starting CelFlow System...")
+            self.logger.info("🎯 Starting ALims System...")
             self.start_time = datetime.now()
 
             # Start core components
@@ -120,7 +120,7 @@ class CelFlowSystemIntegration:
             await self._start_system_components()
 
             self.is_running = True
-            self.logger.info("✅ CelFlow System started successfully")
+            self.logger.info("✅ ALims System started successfully")
 
             # Run main loop
             await self._run_main_loop()
@@ -130,12 +130,12 @@ class CelFlowSystemIntegration:
             await self.shutdown()
 
     async def shutdown(self):
-        """Gracefully shutdown the CelFlow system"""
+        """Gracefully shutdown the ALims system"""
         try:
             if not self.is_running:
                 return
 
-            self.logger.info("🛑 Shutting down CelFlow System...")
+            self.logger.info("🛑 Shutting down ALims System...")
             self.is_running = False
 
             # Stop system integration components
@@ -145,7 +145,7 @@ class CelFlowSystemIntegration:
             await self._stop_core_components()
 
             uptime = datetime.now() - self.start_time if self.start_time else None
-            self.logger.info(f"✅ CelFlow System shutdown complete. Uptime: {uptime}")
+            self.logger.info(f"✅ ALims System shutdown complete. Uptime: {uptime}")
 
         except Exception as e:
             self.logger.error(f"❌ Error during shutdown: {e}")
@@ -183,7 +183,7 @@ class CelFlowSystemIntegration:
             return False
 
     async def _initialize_core_components(self) -> bool:
-        """Initialize core CelFlow components"""
+        """Initialize core ALims components"""
         try:
             self.logger.info("Initializing core components...")
 
@@ -254,7 +254,7 @@ class CelFlowSystemIntegration:
             return False
 
     async def _start_core_components(self):
-        """Start core CelFlow components"""
+        """Start core ALims components"""
         try:
             self.logger.info("Starting core components...")
 
@@ -295,7 +295,7 @@ class CelFlowSystemIntegration:
                     # For now, we'll log that it's available but needs main thread
                     self.logger.info("🎯 Tray app initialized and ready")
                     tray_msg = (
-                        "💡 Use 'python celflow_tray.py' for full tray integration"
+                        "💡 Use 'python alims_tray.py' for full tray integration"
                     )
                     self.logger.info(tray_msg)
                 except Exception as e:
@@ -310,7 +310,7 @@ class CelFlowSystemIntegration:
             raise
 
     async def _stop_core_components(self):
-        """Stop core CelFlow components"""
+        """Stop core ALims components"""
         try:
             self.logger.info("Stopping core components...")
 
@@ -501,15 +501,15 @@ class CelFlowSystemIntegration:
 
 
 async def main():
-    """Main entry point for CelFlow system integration"""
+    """Main entry point for ALims system integration"""
     # Setup logging
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    logger = logging.getLogger("CelFlowMain")
-    logger.info("🚀 Starting CelFlow - The Self-Creating AI Operating System")
+    logger = logging.getLogger("ALimsMain")
+    logger.info("🚀 Starting ALims - The Self-Creating AI Operating System")
 
     # Load configuration
     config = {
@@ -528,7 +528,7 @@ async def main():
     }
 
     # Create and run system
-    system = CelFlowSystemIntegration(config)
+    system = ALimsSystemIntegration(config)
 
     try:
         # Initialize system
@@ -546,7 +546,7 @@ async def main():
     finally:
         # Ensure clean shutdown
         await system.shutdown()
-        logger.info("👋 CelFlow shutdown complete")
+        logger.info("👋 ALims shutdown complete")
 
 
 if __name__ == "__main__":

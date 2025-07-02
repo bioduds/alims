@@ -1,4 +1,4 @@
-# CelFlow Emergent Agent System: Self-Creating AI Agents
+# ALims Emergent Agent System: Self-Creating AI Agents
 
 ## Core Philosophy
 Agents are not pre-designed but emerge organically from user data. Each agent discovers patterns, trains on them, and then an AI "Agent Creator" analyzes the learned patterns to determine the agent's specialization, personality, and tool assignments.
@@ -331,4 +331,4 @@ The system might create agents we never anticipated:
 - **The Energy Optimizer**: Learns when user is most/least productive
 - **The Distraction Guardian**: Identifies and blocks interruption patterns
 
-This emergent approach means CelFlow literally evolves to match each user's unique workflow, creating a truly personalized AI operating system that grows more intelligent and helpful over time. 
+This emergent approach means ALims literally evolves to match each user's unique workflow, creating a truly personalized AI operating system that grows more intelligent and helpful over time. 

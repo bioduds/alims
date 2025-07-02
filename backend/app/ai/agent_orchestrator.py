@@ -1,5 +1,5 @@
 """
-CelFlow Central AI Brain - Agent Orchestrator
+ALims Central AI Brain - Agent Orchestrator
 Coordinates specialized agents for complex multi-agent tasks
 """
 
@@ -112,7 +112,7 @@ class AgentOrchestrator:
 
     def _get_fallback_prompt(self) -> str:
         """Fallback orchestration prompt"""
-        return """You are the Agent Orchestrator for CelFlow.
+        return """You are the Agent Orchestrator for ALims.
 
 Task: {task_description}
 Available agents: {available_agents}

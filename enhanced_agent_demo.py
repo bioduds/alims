@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced CelFlow Agent Demonstration
+Enhanced ALims Agent Demonstration
 Showcases the key improvements: tool calling, workflows, and smart responses
 """
 
@@ -11,7 +11,7 @@ from typing import Dict, Any
 # Configure logging
 logging.basicConfig(level=logging.WARNING)  # Suppress debug output
 
-print("🧠 CelFlow Enhanced Agent Demonstration")
+print("🧠 ALims Enhanced Agent Demonstration")
 print("=" * 60)
 
 print("""
@@ -176,7 +176,7 @@ def main():
     """Main demonstration function"""
     
     try:
-        print("Welcome to the CelFlow Enhanced Agent Demonstration!")
+        print("Welcome to the ALims Enhanced Agent Demonstration!")
         print("\nThis demo shows the transformation from a basic chat agent")
         print("to a sophisticated tool-calling AI with workflow capabilities.\n")
         
@@ -210,7 +210,7 @@ def main():
         print("🎉 DEMONSTRATION COMPLETE!")
         print("="*60)
         print("""
-The CelFlow Enhanced Agent System represents a major advancement
+The ALims Enhanced Agent System represents a major advancement
 in AI agent capabilities, transforming a basic chat interface into
 a sophisticated, tool-calling assistant ready for real-world tasks.
 

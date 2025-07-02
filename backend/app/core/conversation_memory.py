@@ -1,5 +1,5 @@
 """
-CelFlow Conversation Memory System
+ALims Conversation Memory System
 Provides persistent chat history, context management, and intelligent
 conversation continuity
 """

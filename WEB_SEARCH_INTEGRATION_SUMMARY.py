@@ -2,11 +2,11 @@
 """
 SEARXNG WEB SEARCH INTEGRATION - IMPLEMENTATION SUMMARY
 
-This shows how CelFlow now integrates SearXNG so that Gemma can search the web
+This shows how ALims now integrates SearXNG so that Gemma can search the web
 when it judges it should for better, more current responses.
 """
 
-print("🔍 SEARXNG WEB SEARCH INTEGRATION FOR CELFLOW")
+print("🔍 SEARXNG WEB SEARCH INTEGRATION FOR ALIMS")
 print("=" * 60)
 
 print("\n✅ IMPLEMENTATION COMPLETED:")
@@ -50,7 +50,7 @@ print("\n⚙️ SETUP REQUIRED:")
 print("  1. Run: ./setup_searxng.sh")
 print("  2. Wait for Docker containers to start")
 print("  3. SearXNG will be available at http://localhost:8080")
-print("  4. CelFlow automatically uses it when needed")
+print("  4. ALims automatically uses it when needed")
 
 print("\n🔒 PRIVACY FEATURES:")
 print("  • SearXNG is privacy-focused (no tracking)")
@@ -74,4 +74,4 @@ print("  • Automatic decision making (no manual search needed)")
 
 print("\n" + "=" * 60)
 print("WEB SEARCH INTEGRATION: ✅ COMPLETE AND READY!")
-print("Next: Set up SearXNG and test with live CelFlow system")
+print("Next: Set up SearXNG and test with live ALims system")

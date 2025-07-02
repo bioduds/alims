@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Visual Meta-Learning System for CelFlow
+Visual Meta-Learning System for ALims
 Provides real-time visualization of the meta-learning process including
 embryo development, training progress, and agent births.
 """

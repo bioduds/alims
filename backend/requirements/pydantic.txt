@@ -1,4 +1,4 @@
-# Pydantic enhancement requirements for CelFlow
+# Pydantic enhancement requirements for ALims
 # Core validation and type safety
 pydantic>=2.0.0
 

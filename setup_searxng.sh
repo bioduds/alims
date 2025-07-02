@@ -1,13 +1,13 @@
 #!/bin/bash
 """
-SearXNG Setup for CelFlow Web Search Integration
+SearXNG Setup for ALims Web Search Integration
 
 This script helps set up SearXNG as a privacy-focused search engine
-for CelFlow's intelligent web search capabilities.
+for ALims's intelligent web search capabilities.
 """
 
-# SearXNG Setup Instructions for CelFlow
-echo "🔍 Setting up SearXNG for CelFlow Web Search"
+# SearXNG Setup Instructions for ALims
+echo "🔍 Setting up SearXNG for ALims Web Search"
 echo "==========================================="
 
 # Check if Docker is installed
@@ -31,7 +31,7 @@ curl -o docker-compose.yaml https://raw.githubusercontent.com/searxng/searxng-do
 echo "⚙️  Creating SearXNG configuration..."
 mkdir -p searxng
 cat > searxng/settings.yml << 'EOF'
-# SearXNG Configuration for CelFlow
+# SearXNG Configuration for ALims
 use_default_settings: true
 
 server:
@@ -112,8 +112,8 @@ if curl -s http://localhost:8080/ > /dev/null; then
     echo "   Search: http://localhost:8080/search?q=YOUR_QUERY&format=json"
     echo "   Health: http://localhost:8080/"
     echo ""
-    echo "🔧 CelFlow Integration:"
-    echo "   The web search is now ready for CelFlow integration"
+    echo "🔧 ALims Integration:"
+    echo "   The web search is now ready for ALims integration"
     echo "   Gemma can now search the web when needed!"
 else
     echo "❌ SearXNG failed to start. Check logs with:"

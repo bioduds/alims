@@ -1,7 +1,7 @@
 """
 Voice Interface - Speech-to-Text Command Processing
 
-This module provides voice interaction capabilities for CelFlow including:
+This module provides voice interaction capabilities for ALims including:
 - Speech-to-text conversion using multiple engines
 - Voice command recognition and processing
 - Audio feedback and text-to-speech responses
@@ -118,10 +118,10 @@ class VoiceMetrics:
 
 class VoiceInterface:
     """
-    Voice Interface System for CelFlow
+    Voice Interface System for ALims
 
     Provides speech-to-text, voice command processing, and audio feedback
-    capabilities for hands-free interaction with the CelFlow system.
+    capabilities for hands-free interaction with the ALims system.
     """
 
     def __init__(self, config: Dict[str, Any]):
@@ -149,7 +149,7 @@ class VoiceInterface:
 
         # Configuration
         self.wake_words = self.voice_config.get(
-            "wake_words", ["hey celflow", "celflow"]
+            "wake_words", ["hey alims", "alims"]
         )
         self.engines = self._get_available_engines()
         self.primary_engine = VoiceEngineType(

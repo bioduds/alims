@@ -1,5 +1,5 @@
 """
-CelFlow Central AI Brain - Context Manager
+ALims Central AI Brain - Context Manager
 Manages persistent context and memory for intelligent interactions
 """
 

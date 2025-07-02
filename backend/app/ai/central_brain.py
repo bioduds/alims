@@ -1,5 +1,5 @@
 """
-CelFlow Central AI Brain - Core Orchestrating Intelligence
+ALims Central AI Brain - Core Orchestrating Intelligence
 The main brain that coordinates all AI capabilities and system interactions
 """
 
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 class CentralAIBrain:
-    """The orchestrating intelligence of CelFlow"""
+    """The orchestrating intelligence of ALims"""
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
@@ -74,7 +74,7 @@ class CentralAIBrain:
     async def start(self):
         """Initialize the Central AI Brain"""
         try:
-            logger.info("🧠 Starting CelFlow Central AI Brain...")
+            logger.info("🧠 Starting ALims Central AI Brain...")
 
             # Initialize core components
             self.ollama_client = OllamaClient(self.ai_config)
@@ -296,17 +296,17 @@ class CentralAIBrain:
     def _get_system_prompt(self, context_type: str) -> str:
         """Get appropriate system prompt based on context type"""
 
-        base_prompt = """You are the Central AI Brain of CelFlow, a self-creating AI operating system.
+        base_prompt = """You are the Central AI Brain of ALims, a self-creating AI operating system.
 
 Your personality:
-- Helpful and knowledgeable about the CelFlow system
+- Helpful and knowledgeable about the ALims system
 - Clear and concise in explanations
 - Proactive in offering assistance
 - Respectful of user privacy and preferences
 - Enthusiastic about AI and system capabilities
 
 Your core capabilities:
-- Answer questions about CelFlow functionality
+- Answer questions about ALims functionality
 - Execute user commands by coordinating with specialized agents
 - Provide system status and insights
 - Offer proactive suggestions based on user patterns
@@ -1161,7 +1161,7 @@ Your core capabilities:
             # Add system context
             execution_context = context or {}
             execution_context.update({
-                'celflow_version': '1.0.0',
+                'alims_version': '1.0.0',
                 'ai_model': self.ai_config.get('model_name', 'gemma3:4b'),
                 'execution_purpose': purpose,
                 'timestamp': datetime.now().isoformat()

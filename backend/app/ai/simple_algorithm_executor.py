@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Simple Algorithm Executor
+ALims Simple Algorithm Executor
 
 A restricted execution environment for Gemma that only allows simple, 
 focused algorithms with clear inputs and outputs. This prevents the AI

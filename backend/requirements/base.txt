@@ -1,4 +1,4 @@
-# CelFlow - Self-Evolving AI Operating System Layer
+# ALims - Self-Evolving AI Operating System Layer
 # Core Dependencies
 
 # Machine Learning
@@ -147,7 +147,7 @@ faiss-cpu>=1.7.4     # Vector similarity search
 chromadb>=0.4.0      # Vector database for memory
 langchain>=0.1.0     # LLM orchestration framework
 
-# CelFlow - The Self-Creating AI Operating System
+# ALims - The Self-Creating AI Operating System
 # Phase 3: System Integration Dependencies
 
 # Core dependencies

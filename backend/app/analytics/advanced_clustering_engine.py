@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Advanced Clustering Engine for CelFlow
+Advanced Clustering Engine for ALims
 Multi-algorithm clustering and pattern analysis for continuous learning pipeline
 Enhanced with Pydantic models for type safety and validation
 """

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-CelFlow Tray App Launcher
+ALims Tray App Launcher
 
 Runs the macOS system tray app on the main thread while keeping
-the core CelFlow system running in the background.
+the core ALims system running in the background.
 """
 
 import asyncio
@@ -11,13 +11,13 @@ import threading
 import logging
 from typing import Dict, Any, Optional
 
-from app.system.macos_tray import create_tray_app, EnhancedCelFlowTrayApp
-from app.system.system_integration import CelFlowSystemIntegration
+from app.system.macos_tray import create_tray_app, EnhancedAlimsTrayApp
+from app.system.system_integration import ALimsSystemIntegration
 
 
 class TrayLauncher:
     """
-    Launches CelFlow with proper thread management for macOS tray integration
+    Launches ALims with proper thread management for macOS tray integration
     """
 
     def __init__(self, config: Dict[str, Any]):
@@ -25,17 +25,17 @@ class TrayLauncher:
         self.logger = logging.getLogger("TrayLauncher")
 
         # System components
-        self.system_integration: Optional[CelFlowSystemIntegration] = None
-        self.tray_app: Optional[EnhancedCelFlowTrayApp] = None
+        self.system_integration: Optional[ALimsSystemIntegration] = None
+        self.tray_app: Optional[EnhancedAlimsTrayApp] = None
 
         # Threading
         self.system_thread: Optional[threading.Thread] = None
         self.system_ready = threading.Event()
 
     def run(self):
-        """Run CelFlow with tray app on main thread"""
+        """Run ALims with tray app on main thread"""
         try:
-            self.logger.info("🚀 Starting CelFlow with Tray Integration...")
+            self.logger.info("🚀 Starting ALims with Tray Integration...")
 
             # Start the core system in a background thread
             self._start_system_thread()
@@ -75,12 +75,12 @@ class TrayLauncher:
             self._cleanup()
 
     def _start_system_thread(self):
-        """Start the core CelFlow system in a background thread"""
+        """Start the core ALims system in a background thread"""
 
         def run_system():
             try:
                 # Create system integration
-                self.system_integration = CelFlowSystemIntegration(self.config)
+                self.system_integration = ALimsSystemIntegration(self.config)
 
                 # Run the async system
                 asyncio.run(self._run_system_async())
@@ -89,7 +89,7 @@ class TrayLauncher:
                 self.logger.error(f"System thread error: {e}")
 
         self.system_thread = threading.Thread(
-            target=run_system, daemon=True, name="CelFlowSystem"
+            target=run_system, daemon=True, name="ALimsSystem"
         )
         self.system_thread.start()
 
@@ -126,9 +126,9 @@ class TrayLauncher:
                 self.logger.error(f"Cleanup error: {e}")
 
 
-def run_celflow_with_tray(config: Dict[str, Any]):
+def run_alims_with_tray(config: Dict[str, Any]):
     """
-    Main entry point for running CelFlow with tray integration
+    Main entry point for running ALims with tray integration
     """
     launcher = TrayLauncher(config)
     launcher.run()
@@ -157,4 +157,4 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    run_celflow_with_tray(config)
+    run_alims_with_tray(config)

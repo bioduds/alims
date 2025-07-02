@@ -1,4 +1,4 @@
-import { AnalysisResults, PatternEvolutionPoint, ClusteringAlgorithm } from "../types/celflow";
+import { AnalysisResults, PatternEvolutionPoint, ClusteringAlgorithm } from "../types/alims";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { TrendingUp, Clock, BarChart3 } from "lucide-react";
 

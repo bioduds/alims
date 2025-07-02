@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Embryo Pool
+ALims Embryo Pool
 
 Manages a pool of agent embryos that compete to detect patterns in user data.
 Each embryo is a minimal neural network that specializes in different pattern

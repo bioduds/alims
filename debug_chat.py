@@ -11,7 +11,7 @@ import time
 async def test_simple_chat():
     """Test the chat endpoint with a simple message"""
     
-    print("🔍 Testing CelFlow Chat API")
+    print("🔍 Testing ALims Chat API")
     
     # Simple test message
     payload = {
@@ -100,7 +100,7 @@ async def test_web_search_chat():
         return False
 
 async def main():
-    print("🚀 Starting CelFlow Chat Debug Test\n")
+    print("🚀 Starting ALims Chat Debug Test\n")
     
     # Test 1: Simple chat
     simple_works = await test_simple_chat()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Agent Creator
+ALims Agent Creator
 
 The AI that analyzes embryo patterns and creates specialized agents.
 Uses pattern analysis to understand embryo behavior and design agent personalities.

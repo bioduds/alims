@@ -118,10 +118,10 @@ async fn start_chat_session(state: State<'_, AppState>) -> Result<String, String
         .arg("-c")
         .arg(r#"
 import asyncio
-from backend.app.system.system_integration import CelFlowSystemIntegration
+from backend.app.system.system_integration import ALimsSystemIntegration
 
 async def start_session():
-    system = CelFlowSystemIntegration()
+    system = ALimsSystemIntegration()
     await system.initialize()
     result = await system.chat_with_agents("", None)
     print(result.get("session_id", ""))
@@ -150,10 +150,10 @@ async fn send_chat_message(state: State<'_, AppState>, message: String, session_
         .arg(format!(r#"
 import asyncio
 import json
-from backend.app.system.system_integration import CelFlowSystemIntegration
+from backend.app.system.system_integration import ALimsSystemIntegration
 
 async def send_message():
-    system = CelFlowSystemIntegration()
+    system = ALimsSystemIntegration()
     await system.initialize()
     result = await system.chat_with_agents("{}", "{}")
     print(json.dumps(result))
@@ -183,10 +183,10 @@ async fn get_chat_history(state: State<'_, AppState>, session_id: String) -> Res
         .arg(format!(r#"
 import asyncio
 import json
-from backend.app.system.system_integration import CelFlowSystemIntegration
+from backend.app.system.system_integration import ALimsSystemIntegration
 
 async def get_history():
-    system = CelFlowSystemIntegration()
+    system = ALimsSystemIntegration()
     await system.initialize()
     if system.agent_interface:
         history = system.agent_interface.get_session_history("{}")
@@ -266,8 +266,8 @@ fn detect_python_path() -> String {
     let candidates = vec![
         "python3",
         "python",
-        "./celflow_env/bin/python",
-        "./celflow_env/Scripts/python.exe",
+        "./alims_env/bin/python",
+        "./alims_env/Scripts/python.exe",
     ];
     
     for candidate in candidates {

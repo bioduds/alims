@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Meta-Learning System
+ALims Meta-Learning System
 Uses Gemma 3:4b as a teacher to train small, specialized neural networks
 based on semantic analysis of event data.
 """
@@ -143,7 +143,7 @@ class MetaLearningSystem:
     ) -> str:
         """Create prompt for semantic labeling"""
 
-        prompt = f"""You are a meta-learning teacher training specialized AI agents for CelFlow.
+        prompt = f"""You are a meta-learning teacher training specialized AI agents for ALims.
 
 Agent Specialization: {specialization}
 Semantic Understanding Required: {', '.join(understanding)}
@@ -711,7 +711,7 @@ Provide architecture as JSON:
                 for e in events
                 if any(
                     keyword in e.get("path", "").lower()
-                    for keyword in ["projects", ".py", ".js", ".git", "celflow"]
+                    for keyword in ["projects", ".py", ".js", ".git", "alims"]
                 )
             ]
 

@@ -1,4 +1,4 @@
-# CelFlow Implementation Plan: From Embryos to Ecosystem
+# ALims Implementation Plan: From Embryos to Ecosystem
 
 ## Overview
 Build a self-evolving AI agent ecosystem for macOS that starts with simple pattern-detecting embryos and evolves into specialized intelligent agents that understand and automate the user's unique workflows.
@@ -193,8 +193,8 @@ Week 8+:  Agent-specific UI panels and controls
 ### **Development Environment Setup**
 ```bash
 # Create virtual environment
-python3 -m venv celflow_env
-source celflow_env/bin/activate
+python3 -m venv alims_env
+source alims_env/bin/activate
 
 # Install core dependencies
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
@@ -207,7 +207,7 @@ pip install cryptography keyring
 
 ### **Project Structure Setup**
 ```
-celflow/
+alims/
 ├── app/
 │   ├── core/
 │   │   ├── embryo_pool.py      # Embryo management

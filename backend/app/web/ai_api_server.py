@@ -1,5 +1,5 @@
 """
-CelFlow AI API Server
+ALims AI API Server
 FastAPI server that exposes the Central AI Brain through REST endpoints
 for the Tauri desktop application and other frontends.
 """
@@ -95,7 +95,7 @@ async def lifespan(app: FastAPI):
     global central_brain, central_integration
     
     # Startup
-    logger.info("🚀 Starting CelFlow AI API Server...")
+    logger.info("🚀 Starting ALims AI API Server...")
     
     try:
         # Load configuration
@@ -111,7 +111,7 @@ async def lifespan(app: FastAPI):
         central_integration = CentralIntegration(config)
         await central_integration.initialize()
         
-        logger.info("✅ CelFlow AI API Server started successfully")
+        logger.info("✅ ALims AI API Server started successfully")
         
     except Exception as e:
         logger.error(f"❌ Failed to start AI API Server: {e}")
@@ -120,15 +120,15 @@ async def lifespan(app: FastAPI):
     yield
     
     # Shutdown
-    logger.info("🛑 Shutting down CelFlow AI API Server...")
+    logger.info("🛑 Shutting down ALims AI API Server...")
     if central_brain:
         await central_brain.stop()
     logger.info("✅ AI API Server shutdown complete")
 
 # Create FastAPI app
 app = FastAPI(
-    title="CelFlow AI API",
-    description="API server for CelFlow Central AI Brain",
+    title="ALims AI API",
+    description="API server for ALims Central AI Brain",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -149,7 +149,7 @@ app.add_middleware(
 )
 
 def load_config() -> Dict[str, Any]:
-    """Load CelFlow configuration"""
+    """Load ALims configuration"""
     try:
         # Load AI config
         with open('config/ai_config.yaml', 'r') as f:
@@ -191,7 +191,7 @@ def load_config() -> Dict[str, Any]:
 @app.get("/")
 async def root():
     """API root endpoint"""
-    return {"message": "CelFlow AI API Server", "status": "running"}
+    return {"message": "ALims AI API Server", "status": "running"}
 
 @app.get("/health", response_model=SystemStatus)
 async def health_check():

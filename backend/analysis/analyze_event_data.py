@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Analyze CelFlow Event Data for Natural Clustering
+Analyze ALims Event Data for Natural Clustering
 This script examines the actual event data to understand what patterns exist
 and what types of agents should naturally emerge from the data.
 """
@@ -14,7 +14,7 @@ from datetime import datetime
 def analyze_event_database(db_path="data/events.db"):
     """Analyze the event database to understand natural patterns"""
 
-    print("🔍 Analyzing CelFlow Event Database...")
+    print("🔍 Analyzing ALims Event Database...")
     print("=" * 50)
 
     conn = sqlite3.connect(db_path)

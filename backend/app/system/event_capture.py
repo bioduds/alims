@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow macOS System Event Capture
+ALims macOS System Event Capture
 
 Captures real system events from macOS for feeding to the embryo pool:
 - File system events (create, modify, delete, move)
@@ -435,7 +435,7 @@ class SystemEventCapture:
         if not self.event_callback:
             raise ValueError("Event callback must be set before starting capture")
 
-        self.logger.info("🎯 Starting CelFlow System Event Capture...")
+        self.logger.info("🎯 Starting ALims System Event Capture...")
 
         # Start file system monitoring
         await self._start_filesystem_monitoring()

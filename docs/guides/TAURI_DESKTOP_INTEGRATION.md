@@ -1,8 +1,8 @@
-# CelFlow Tauri Desktop Integration Guide
+# ALims Tauri Desktop Integration Guide
 
 ## 🖥️ Overview
 
-CelFlow now features seamless integration between the macOS system tray and the beautiful Tauri desktop application. This integration provides the best of both worlds: quick access through the menu bar and a stunning desktop interface for detailed analytics.
+ALims now features seamless integration between the macOS system tray and the beautiful Tauri desktop application. This integration provides the best of both worlds: quick access through the menu bar and a stunning desktop interface for detailed analytics.
 
 ## ✨ Features
 
@@ -37,8 +37,8 @@ cargo install tauri-cli@^2.0
 ### 2. Launch with Tauri Integration
 
 ```bash
-# Start CelFlow with Tauri-integrated tray
-./launch_celflow.sh tauri
+# Start ALims with Tauri-integrated tray
+./launch_alims.sh tauri
 ```
 
 ### 3. Access Desktop App
@@ -54,7 +54,7 @@ cargo install tauri-cli@^2.0
 
 ```bash
 # Launch desktop app directly
-./launch_celflow.sh desktop
+./launch_alims.sh desktop
 
 # Or use npm directly
 npm run tauri:dev
@@ -80,7 +80,7 @@ python launch_tauri_tray.py
 - ✅ **Node.js 18+** - For React frontend
 - ✅ **Rust 1.70+** - For Tauri backend
 - ✅ **Tauri CLI 2.0+** - For desktop app compilation
-- ✅ **Python 3.8+** - For CelFlow backend
+- ✅ **Python 3.8+** - For ALims backend
 - ✅ **macOS 14.3+** - For system tray integration
 
 ### Optional Components
@@ -147,7 +147,7 @@ python launch_tauri_tray.py
 │  ├── Rust Backend (High Performance)                       │
 │  └── Python Integration (ML Pipeline)                      │
 ├─────────────────────────────────────────────────────────────┤
-│  🧠 CelFlow Core System                                     │
+│  🧠 ALims Core System                                     │
 │  ├── Central AI Brain                                       │
 │  ├── Agent Manager                                          │
 │  ├── Pattern Detection                                      │
@@ -161,11 +161,11 @@ python launch_tauri_tray.py
 
 ```bash
 # Available commands
-./launch_celflow.sh start    # Standard tray
-./launch_celflow.sh tauri    # Tauri-integrated tray
-./launch_celflow.sh desktop  # Direct desktop launch
-./launch_celflow.sh status   # System status
-./launch_celflow.sh stop     # Stop system
+./launch_alims.sh start    # Standard tray
+./launch_alims.sh tauri    # Tauri-integrated tray
+./launch_alims.sh desktop  # Direct desktop launch
+./launch_alims.sh status   # System status
+./launch_alims.sh stop     # Stop system
 ```
 
 ### Environment Variables
@@ -220,10 +220,10 @@ npm run tauri:build
 **Restart Tray:**
 ```bash
 # Restart just the tray
-./launch_celflow.sh tray
+./launch_alims.sh tray
 
 # Or restart entire system
-./launch_celflow.sh restart
+./launch_alims.sh restart
 ```
 
 ### Process Management Issues
@@ -234,16 +234,16 @@ npm run tauri:build
 tail -f logs/tauri_tray.log
 
 # View desktop app logs
-tail -f logs/celflow_main.log
+tail -f logs/alims_main.log
 ```
 
 **Manual Cleanup:**
 ```bash
 # Stop all processes
-./launch_celflow.sh stop
+./launch_alims.sh stop
 
 # Clean restart
-./launch_celflow.sh tauri
+./launch_alims.sh tauri
 ```
 
 ## 📊 Performance Benefits
@@ -263,7 +263,7 @@ tail -f logs/celflow_main.log
 ## 🎨 User Experience
 
 ### Workflow
-1. **System Start**: `./launch_celflow.sh tauri`
+1. **System Start**: `./launch_alims.sh tauri`
 2. **Tray Access**: Click 🧬 in menu bar
 3. **Desktop Launch**: Select "🖥️ Launch Desktop App"
 4. **Beautiful Analytics**: Enjoy the stunning interface
@@ -298,5 +298,5 @@ tail -f logs/celflow_main.log
 
 ---
 
-**🧬 CelFlow - Where AI Creates Itself**  
+**🧬 ALims - Where AI Creates Itself**  
 *Now with seamless desktop integration through the system tray!* 

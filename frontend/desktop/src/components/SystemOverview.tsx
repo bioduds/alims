@@ -1,5 +1,5 @@
 import React from 'react';
-import { SystemOverviewProps } from '../types/celflow';
+import { SystemOverviewProps } from '../types/alims';
 import { cn } from '../utils/cn';
 
 const SystemOverview: React.FC<SystemOverviewProps> = ({ metrics }) => {

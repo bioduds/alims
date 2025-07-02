@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Agent Manager
+ALims Agent Manager
 
 Coordinates the entire agent lifecycle:
 - Monitors embryo pool maturity
@@ -62,7 +62,7 @@ class AgentManager:
 
     async def start(self):
         """Start the agent management system"""
-        self.logger.info("🚀 Starting CelFlow Agent Management System...")
+        self.logger.info("🚀 Starting ALims Agent Management System...")
 
         # Start embryo pool
         await self.embryo_pool.start()
@@ -77,7 +77,7 @@ class AgentManager:
 
         Used when embryo pool is managed externally by system integration
         """
-        self.logger.info("🚀 Starting CelFlow Agent Management System...")
+        self.logger.info("🚀 Starting ALims Agent Management System...")
 
         # Skip embryo pool start - managed externally
         self.logger.info("📋 Embryo pool managed by system integration")

@@ -1,10 +1,10 @@
-# CelFlow Phase 4: Complete Event Persistence System 🗄️
+# ALims Phase 4: Complete Event Persistence System 🗄️
 
 ## 🎯 Mission Accomplished
 
 **Your AI Operating System now has PERFECT MEMORY!** 
 
-We've implemented a comprehensive, high-performance event persistence system that transforms CelFlow from a memory-limited system into one with unlimited learning capacity and perfect recall.
+We've implemented a comprehensive, high-performance event persistence system that transforms ALims from a memory-limited system into one with unlimited learning capacity and perfect recall.
 
 ## 🚀 What We Built
 
@@ -25,25 +25,25 @@ We've implemented a comprehensive, high-performance event persistence system tha
 
 ### 3. Command Line Tools
 
-#### Events CLI Tool (`tools/celflow_events.py`)
+#### Events CLI Tool (`tools/alims_events.py`)
 ```bash
 # Show database statistics
-python3 tools/celflow_events.py stats
+python3 tools/alims_events.py stats
 
 # List recent events
-python3 tools/celflow_events.py list --hours 2 --limit 50
+python3 tools/alims_events.py list --hours 2 --limit 50
 
 # Search for specific events
-python3 tools/celflow_events.py search "chrome" --limit 10
+python3 tools/alims_events.py search "chrome" --limit 10
 
 # Export events to JSON
-python3 tools/celflow_events.py export backup.json --hours 24
+python3 tools/alims_events.py export backup.json --hours 24
 ```
 
-#### Real-Time Dashboard (`tools/celflow_dashboard.py`)
+#### Real-Time Dashboard (`tools/alims_dashboard.py`)
 ```bash
 # Launch live monitoring dashboard
-python3 tools/celflow_dashboard.py
+python3 tools/alims_dashboard.py
 ```
 
 Shows real-time:
@@ -164,40 +164,40 @@ System Activity     Memory Buffering        Error Recovery       Pattern Storage
 
 ## 🛠️ Usage Examples
 
-### Running CelFlow with Persistence
+### Running ALims with Persistence
 ```bash
 # Headless mode with persistence (default)
-python3 celflow.py
+python3 alims.py
 
 # Full macOS integration with persistence (default)
-python3 celflow_tray.py
+python3 alims_tray.py
 ```
 
 ### Monitoring Your System
 ```bash
 # Real-time dashboard
-python3 tools/celflow_dashboard.py
+python3 tools/alims_dashboard.py
 
 # Quick stats check
-python3 tools/celflow_events.py stats
+python3 tools/alims_events.py stats
 
 # View recent activity
-python3 tools/celflow_events.py list --hours 1
+python3 tools/alims_events.py list --hours 1
 ```
 
 ### Data Analysis
 ```bash
 # Search for Chrome-related events
-python3 tools/celflow_events.py search "chrome"
+python3 tools/alims_events.py search "chrome"
 
 # Export last 24 hours for analysis
-python3 tools/celflow_events.py export daily_backup.json --hours 24
+python3 tools/alims_events.py export daily_backup.json --hours 24
 
 # View file operations only
-python3 tools/celflow_events.py list --type file_op --limit 100
+python3 tools/alims_events.py list --type file_op --limit 100
 ```
 
-## 📈 Impact on CelFlow Capabilities
+## 📈 Impact on ALims Capabilities
 
 ### Enhanced Learning
 - **Pattern Recognition**: AI can now detect patterns across days/weeks
@@ -282,7 +282,7 @@ python3 tools/celflow_events.py list --type file_op --limit 100
 
 ## 🚀 Ready for Production
 
-Your CelFlow AI Operating System is now equipped with:
+Your ALims AI Operating System is now equipped with:
 
 1. **🧠 30 Neural Embryos** competing and learning
 2. **⚡ High-Performance Event Capture** at 5.9+ events/second  
@@ -293,9 +293,9 @@ Your CelFlow AI Operating System is now equipped with:
 
 ## 🎯 Next Steps
 
-1. **Run CelFlow**: `python3 celflow_tray.py`
-2. **Monitor Progress**: `python3 tools/celflow_dashboard.py`
-3. **Analyze Data**: `python3 tools/celflow_events.py stats`
+1. **Run ALims**: `python3 alims_tray.py`
+2. **Monitor Progress**: `python3 tools/alims_dashboard.py`
+3. **Analyze Data**: `python3 tools/alims_events.py stats`
 4. **Let It Learn**: Your AI will now build knowledge indefinitely!
 
 ---

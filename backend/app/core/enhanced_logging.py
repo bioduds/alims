@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced Logging System for CelFlow
+Enhanced Logging System for ALims
 Provides detailed, structured logging with better visibility into system operations
 """
 
@@ -11,12 +11,12 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
 
-class CelFlowLogger:
-    """Enhanced logger with structured logging for CelFlow operations"""
+class ALimsLogger:
+    """Enhanced logger with structured logging for ALims operations"""
     
     def __init__(self, component_name: str):
         self.component_name = component_name
-        self.logger = logging.getLogger(f"celflow.{component_name}")
+        self.logger = logging.getLogger(f"alims.{component_name}")
         
         # Create logs directory if it doesn't exist
         logs_dir = Path("logs")
@@ -155,11 +155,11 @@ class CelFlowLogger:
             self.logger.info(f"✅ {message}")
 
 # Global logger instances for key components
-lambda_logger = CelFlowLogger("lambda_execution")
-central_brain_logger = CelFlowLogger("central_brain")
-user_interface_logger = CelFlowLogger("user_interface")
-system_logger = CelFlowLogger("system")
+lambda_logger = ALimsLogger("lambda_execution")
+central_brain_logger = ALimsLogger("central_brain")
+user_interface_logger = ALimsLogger("user_interface")
+system_logger = ALimsLogger("system")
 
-def create_component_logger(component_name: str) -> CelFlowLogger:
+def create_component_logger(component_name: str) -> ALimsLogger:
     """Create a logger for a specific component"""
-    return CelFlowLogger(component_name)
+    return ALimsLogger(component_name)

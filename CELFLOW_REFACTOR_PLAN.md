@@ -1,41 +1,41 @@
-# CelFlow Refactor Plan - SelFlow → CelFlow
+# ALims Refactor Plan - SelFlow → ALims
 
 ## Overview
-Complete refactor from SelFlow to CelFlow for commercial launch with celflow.com domain.
+Complete refactor from SelFlow to ALims for commercial launch with alims.com domain.
 
 ## Refactor Mapping
-- `SelFlow` → `CelFlow` (title case)
-- `selflow` → `celflow` (lowercase)
-- `selFlow` → `celFlow` (camelCase)
-- `SELFLOW` → `CELFLOW` (uppercase)
+- `SelFlow` → `ALims` (title case)
+- `selflow` → `alims` (lowercase)
+- `selFlow` → `aLims` (camelCase)
+- `SELFLOW` → `ALIMS` (uppercase)
 
 ## Files to Rename
 ### Root Level
-- `launch_selflow.sh` → `launch_celflow.sh`
+- `launch_selflow.sh` → `launch_alims.sh`
 
 ### Backend Scripts
-- `backend/scripts/launch_selflow.sh` → `backend/scripts/launch_celflow.sh`
-- `backend/scripts/run_selflow_live.py` → `backend/scripts/run_celflow_live.py`
-- `backend/scripts/run_visual_selflow.py` → `backend/scripts/run_visual_celflow.py`
-- `backend/scripts/selflow.py` → `backend/scripts/celflow.py`
-- `backend/scripts/selflow_tray.py` → `backend/scripts/celflow_tray.py`
+- `backend/scripts/launch_selflow.sh` → `backend/scripts/launch_alims.sh`
+- `backend/scripts/run_selflow_live.py` → `backend/scripts/run_alims_live.py`
+- `backend/scripts/run_visual_selflow.py` → `backend/scripts/run_visual_alims.py`
+- `backend/scripts/selflow.py` → `backend/scripts/alims.py`
+- `backend/scripts/selflow_tray.py` → `backend/scripts/alims_tray.py`
 
 ### Tools
-- `tools/selflow_dashboard.py` → `tools/celflow_dashboard.py`
-- `tools/selflow_events.py` → `tools/celflow_events.py`
+- `tools/selflow_dashboard.py` → `tools/alims_dashboard.py`
+- `tools/selflow_events.py` → `tools/alims_events.py`
 
 ### Environment
-- `environments/selflow_env/` → `environments/celflow_env/`
+- `environments/selflow_env/` → `environments/alims_env/`
 
 ### Log Files
-- `logs/selflow_*.log` → `logs/celflow_*.log`
-- `logs/selflow_*.pid` → `logs/celflow_*.pid`
+- `logs/selflow_*.log` → `logs/alims_*.log`
+- `logs/selflow_*.pid` → `logs/alims_*.pid`
 
 ### Data Files
-- `data/selflow_events.db` → `data/celflow_events.db`
+- `data/selflow_events.db` → `data/alims_events.db`
 
 ### TypeScript Types
-- `frontend/desktop/src/types/selflow.ts` → `frontend/desktop/src/types/celflow.ts`
+- `frontend/desktop/src/types/selflow.ts` → `frontend/desktop/src/types/alims.ts`
 
 ## Content Changes
 ### Package Configuration
@@ -49,8 +49,8 @@ Complete refactor from SelFlow to CelFlow for commercial launch with celflow.com
 - All guide files
 
 ### Code Files
-- Class names: `SelFlowApp` → `CelFlowApp`
-- Variable names: `selflow_*` → `celflow_*`
+- Class names: `SelFlowApp` → `ALimsApp`
+- Variable names: `selflow_*` → `alims_*`
 - String literals and comments
 - Log messages and print statements
 - Environment variable names
@@ -78,7 +78,7 @@ Complete refactor from SelFlow to CelFlow for commercial launch with celflow.com
 
 ## Post-Refactor Tasks
 1. Update GitHub repository name
-2. Update domain references to celflow.com
+2. Update domain references to alims.com
 3. Update any hardcoded paths
 4. Verify all imports still work
 5. Test complete system functionality 

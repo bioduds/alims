@@ -1,4 +1,4 @@
-# CelFlow Intelligent Clustering Dependencies
+# ALims Intelligent Clustering Dependencies
 # Install with: pip install -r requirements-clustering.txt
 
 # Core machine learning libraries

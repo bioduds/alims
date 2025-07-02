@@ -1,5 +1,5 @@
 """
-CelFlow Enhanced User Interface Agent
+ALims Enhanced User Interface Agent
 Integrates with the new tool system and workflow orchestrator for smarter responses
 """
 
@@ -169,7 +169,7 @@ class EnhancedUserInterfaceAgent:
     def _build_basic_system_prompt(self, message: str, context: Optional[Dict[str, Any]]) -> str:
         """Build basic system prompt for fallback mode"""
         
-        base_prompt = """You are CelFlow AI, a helpful and intelligent assistant.
+        base_prompt = """You are ALims AI, a helpful and intelligent assistant.
 
 You have access to current information through web search when needed.
 Provide accurate, helpful responses based on the available context.

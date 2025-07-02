@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow High-Performance Event Capture System
+ALims High-Performance Event Capture System
 
 Optimized for maximum event capture rate with minimal system impact:
 - Sub-second polling intervals

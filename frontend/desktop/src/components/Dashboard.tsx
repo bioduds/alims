@@ -1,5 +1,5 @@
 import React from 'react';
-import { DashboardProps } from '../types/celflow';
+import { DashboardProps } from '../types/alims';
 import SystemOverview from './SystemOverview';
 import ClusteringResults from './ClusteringResults';
 import PatternEvolution from './PatternEvolution';

@@ -204,10 +204,10 @@ class MicroAgentTrainer:
 #### Day 6-8: Smart Tray Menu System with Live Training
 ```python
 # Enhance: app/system/macos_tray.py
-class EnhancedCelFlowTray(rumps.App):
+class EnhancedALimsTray(rumps.App):
     def __init__(self):
-        super().__init__("🧠 CelFlow")
-        self.data_engine = CelFlowDataEngine()
+        super().__init__("🧠 ALims")
+        self.data_engine = ALimsDataEngine()
         self.viz_engine = TrayVisualizationEngine()
         self.trainer = MicroAgentTrainer()
         self.setup_smart_menu()
@@ -259,7 +259,7 @@ class TrainingVisualizationDashboard:
     def show_training_dashboard(self):
         """Show live training progress and model performance"""
         window = tk.Tk()
-        window.title("🏗️ CelFlow Micro-Agent Training Center")
+        window.title("🏗️ ALims Micro-Agent Training Center")
         window.geometry("1000x800")
         
         # Training Queue Panel
@@ -355,7 +355,7 @@ class ModelBanditSelector:
 
 ### Main Menu Structure (Updated)
 ```
-🧠 CelFlow
+🧠 ALims
 ├── 📊 Live Dashboard (2,847 events today)
 ├── 🔍 Advanced Pattern Explorer (HDBSCAN: 23 patterns)
 ├── 📈 Today's Activity
@@ -390,7 +390,7 @@ class ModelBanditSelector:
 ### Training Center Dashboard Layout
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ 🏗️ CelFlow Training Center - Living AI Evolution       │
+│ 🏗️ ALims Training Center - Living AI Evolution       │
 ├─────────────────────────────────────────────────────────┤
 │ 📦 Data Buffer: 87% (56MB/64MB) ⏱️ Training in 2h 15m  │
 ├─────────────────────────────────────────────────────────┤

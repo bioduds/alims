@@ -52,7 +52,7 @@ cd alims
 python -m venv alims_env
 source alims_env/bin/activate
 pip install -r backend/requirements/base.txt
-./launch_celflow.sh
+./launch_alims.sh
 ```
 
 ### 3. Repository Configuration

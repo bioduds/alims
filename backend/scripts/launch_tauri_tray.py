@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Tauri-Integrated Tray Launcher
+ALims Tauri-Integrated Tray Launcher
 
 Launches the enhanced system tray with beautiful Tauri desktop app integration.
 """
@@ -32,7 +32,7 @@ def main():
     )
     
     logger = logging.getLogger(__name__)
-    logger.info("🧬 Starting CelFlow Tauri-Integrated Tray...")
+    logger.info("🧬 Starting ALims Tauri-Integrated Tray...")
     
     try:
         # Create the tray application
@@ -41,7 +41,7 @@ def main():
         if tray_app:
             logger.info("✅ Tray application created successfully")
             logger.info("🖥️ Desktop app can be launched from the tray menu")
-            logger.info("🧬 CelFlow tray is now running in your menu bar")
+            logger.info("🧬 ALims tray is now running in your menu bar")
             
             # Run the tray application
             tray_app.run()

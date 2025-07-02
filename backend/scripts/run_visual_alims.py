@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Visual System Launcher
+ALims Visual System Launcher
 Launches the complete visual meta-learning system including:
 - Enhanced tray interface
 - Web dashboard with real-time updates
@@ -24,14 +24,14 @@ sys.path.insert(0, str(Path(__file__).parent / "app"))
 
 from app.ai.visual_meta_learning import VisualMetaLearningSystem
 from app.web.dashboard_server import DashboardServer
-from app.system.enhanced_tray import EnhancedCelFlowTray
+from app.system.enhanced_tray import EnhancedAlimsTray
 
 logger = logging.getLogger(__name__)
 
 
-class VisualCelFlowLauncher:
+class VisualALimsLauncher:
     """
-    Visual launcher for CelFlow with enhanced UI and monitoring capabilities.
+    Visual launcher for ALims with enhanced UI and monitoring capabilities.
     
     Features:
     - Real-time system visualization
@@ -140,7 +140,7 @@ class VisualCelFlowLauncher:
             # Import here to avoid issues on non-macOS systems
             import rumps
 
-            self.tray_app = EnhancedCelFlowTray()
+            self.tray_app = EnhancedAlimsTray()
 
             # Add dashboard link to tray menu
             @rumps.clicked("🌐 Open Dashboard")
@@ -167,12 +167,12 @@ class VisualCelFlowLauncher:
             if sys.platform == "darwin":  # macOS
                 os.system(
                     f"""
-                    osascript -e 'display notification "🎉 {agent.name} has been born with {agent.accuracy:.1f}% accuracy!" with title "CelFlow Agent Birth" sound name "Glass"'
+                    osascript -e 'display notification "🎉 {agent.name} has been born with {agent.accuracy:.1f}% accuracy!" with title "ALims Agent Birth" sound name "Glass"'
                 """
                 )
             elif sys.platform == "linux":  # Linux
                 os.system(
-                    f'notify-send "CelFlow Agent Birth" "🎉 {agent.name} has been born!"'
+                    f'notify-send "ALims Agent Birth" "🎉 {agent.name} has been born!"'
                 )
             elif sys.platform == "win32":  # Windows
                 # Could use plyer or win10toast here
@@ -190,10 +190,10 @@ class VisualCelFlowLauncher:
             logger.error(f"Failed to open dashboard in browser: {e}")
 
     def start_all(self):
-        """Start all components of the visual CelFlow system"""
+        """Start all components of the visual ALims system"""
         self.running = True
 
-        print("🧬 Starting CelFlow Visual Meta-Learning System...")
+        print("🧬 Starting ALims Visual Meta-Learning System...")
         print("=" * 60)
 
         try:
@@ -215,7 +215,7 @@ class VisualCelFlowLauncher:
             self.open_dashboard_in_browser()
 
             print("=" * 60)
-            print("✅ CelFlow Visual System Started Successfully!")
+            print("✅ ALims Visual System Started Successfully!")
             print()
             print("🎯 What you can do now:")
             print(
@@ -260,7 +260,7 @@ class VisualCelFlowLauncher:
 
         self.running = False
 
-        print("\n🛑 Shutting down CelFlow Visual System...")
+        print("\n🛑 Shutting down ALims Visual System...")
 
         try:
             # Stop meta-learning system
@@ -286,7 +286,7 @@ class VisualCelFlowLauncher:
                 if thread.is_alive():
                     thread.join(timeout=2)
 
-            print("✅ CelFlow Visual System shutdown complete")
+            print("✅ ALims Visual System shutdown complete")
 
         except Exception as e:
             logger.error(f"Error during shutdown: {e}")
@@ -343,7 +343,7 @@ def main():
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[logging.StreamHandler(), logging.FileHandler("celflow_visual.log")],
+        handlers=[logging.StreamHandler(), logging.FileHandler("alims_visual.log")],
     )
 
     # Check dependencies
@@ -351,7 +351,7 @@ def main():
         sys.exit(1)
 
     # Create and start launcher
-    launcher = VisualCelFlowLauncher()
+    launcher = VisualALimsLauncher()
 
     try:
         launcher.start_all()

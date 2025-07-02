@@ -1,5 +1,5 @@
 """
-CelFlow Central AI Brain - Embryo Trainer
+ALims Central AI Brain - Embryo Trainer
 Intelligent training and validation of AI embryos
 """
 
@@ -110,7 +110,7 @@ class EmbryoTrainer:
 
     def _get_fallback_prompt(self) -> str:
         """Fallback embryo training prompt"""
-        return """You are the Embryo Trainer for CelFlow.
+        return """You are the Embryo Trainer for ALims.
 
 Embryo ID: {embryo_id}
 Detected Patterns: {detected_patterns}

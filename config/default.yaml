@@ -1,10 +1,10 @@
-# CelFlow Configuration - Silent Learning Mode
-# This configuration enables CelFlow to learn patterns silently
+# ALims Configuration - Silent Learning Mode
+# This configuration enables ALims to learn patterns silently
 # without disrupting the user's workflow
 
 # Application Settings
 app:
-  name: "CelFlow"
+  name: "ALims"
   version: "1.0.0"
   mode: "silent_learning"
   debug: false

@@ -1,6 +1,6 @@
-# CelFlow Documentation
+# ALims Documentation
 
-Welcome to the CelFlow documentation! This directory contains all project documentation organized by category.
+Welcome to the ALims documentation! This directory contains all project documentation organized by category.
 
 ## 📚 Documentation Structure
 
@@ -14,7 +14,7 @@ Welcome to the CelFlow documentation! This directory contains all project docume
 ### 📋 Planning
 > Project vision, transformation plans, and strategic documents
 
-- **[CelFlow Transformation Plan](planning/SELFLOW_TRANSFORMATION_PLAN.md)** - Master plan for ecosystem transformation
+- **[ALims Transformation Plan](planning/SELFLOW_TRANSFORMATION_PLAN.md)** - Master plan for ecosystem transformation
 - **[Central AI Brain Plan](planning/CENTRAL_AI_BRAIN_PLAN.md)** - Central intelligence system design
 - **[Emergent Agents](planning/EMERGENT_AGENTS.md)** - Agent emergence and specialization
 - **[Implementation Plan](planning/IMPLEMENTATION_PLAN.md)** - Step-by-step implementation guide
@@ -24,7 +24,7 @@ Welcome to the CelFlow documentation! This directory contains all project docume
 ### 📖 Guides
 > User guides, setup instructions, and how-to documentation
 
-- **[Visual CelFlow Guide](guides/VISUAL_SELFLOW_README.md)** - Visual interface setup and usage
+- **[Visual ALims Guide](guides/VISUAL_SELFLOW_README.md)** - Visual interface setup and usage
 - **[Enhanced Tray Guide](guides/ENHANCED_TRAY_GUIDE.md)** - Tray interface features and usage
 - **[Clustering Guide](guides/CLUSTERING_GUIDE.md)** - Data clustering and analysis
 - **[Persistence Guide](guides/PERSISTENCE_GUIDE.md)** - Data persistence and management
@@ -51,7 +51,7 @@ Welcome to the CelFlow documentation! This directory contains all project docume
 3. Follow [Implementation Plan](planning/IMPLEMENTATION_PLAN.md) for development steps
 
 ### For Users
-1. Check [Visual CelFlow Guide](guides/VISUAL_SELFLOW_README.md) for setup
+1. Check [Visual ALims Guide](guides/VISUAL_SELFLOW_README.md) for setup
 2. Use [Enhanced Tray Guide](guides/ENHANCED_TRAY_GUIDE.md) for daily usage
 3. Reference [Clustering Guide](guides/CLUSTERING_GUIDE.md) for data analysis
 
@@ -61,7 +61,7 @@ Welcome to the CelFlow documentation! This directory contains all project docume
 3. Check [Agent I/O Summary](testing/AGENT_IO_SUMMARY.md) for interface specs
 
 ### For Project Managers
-1. Review [CelFlow Transformation Plan](planning/SELFLOW_TRANSFORMATION_PLAN.md) for vision
+1. Review [ALims Transformation Plan](planning/SELFLOW_TRANSFORMATION_PLAN.md) for vision
 2. Track progress with [Phase Summaries](implementation/)
 3. Monitor [Implementation Plan](planning/IMPLEMENTATION_PLAN.md) milestones
 

@@ -1,4 +1,4 @@
-# CelFlow Visual Meta-Learning System Requirements
+# ALims Visual Meta-Learning System Requirements
 
 # Core ML and Data Processing
 torch>=2.0.0

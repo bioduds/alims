@@ -1,5 +1,5 @@
 """
-CelFlow Enhanced Tool System
+ALims Enhanced Tool System
 Implements modern tool calling patterns for Gemma 3:4B agent
 """
 

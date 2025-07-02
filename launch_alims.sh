@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# CelFlow Launch Script
-# This script manages the CelFlow system components
+# ALIMS Launch Script
+# This script manages the ALIMS system components
 
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -159,22 +159,22 @@ start_system_tray() {
 
 # Function to start the main system
 start_main_system() {
-    echo "Starting CelFlow main system components..."
+    echo "Starting ALIMS main system components..."
     
     # Activate virtual environment
-    if [ -d "celflow_env" ]; then
-        source celflow_env/bin/activate
+    if [ -d "alims_env" ]; then
+        source alims_env/bin/activate
         echo "Virtual environment activated"
     else
         echo "Creating virtual environment..."
-        python3 -m venv celflow_env
-        source celflow_env/bin/activate
+        python3 -m venv alims_env
+        source alims_env/bin/activate
         echo "Installing dependencies..."
         pip install -r backend/requirements/base.txt
     fi
     
     # Start AI API Server first
-    echo "Starting CelFlow AI API Server..."
+    echo "Starting ALIMS AI API Server..."
     cd backend
     python -m app.web.ai_api_server > ../logs/ai_api_server.log 2>&1 &
     AI_API_PID=$!
@@ -184,15 +184,15 @@ start_main_system() {
     # Wait a moment for AI API to start
     sleep 5
     
-    # Start main CelFlow system
-    echo "Starting main CelFlow system..."
-    python backend/scripts/run_celflow_live.py > logs/main_system.log 2>&1 &
+    # Start main ALIMS system
+    echo "Starting main ALIMS system..."
+    python backend/scripts/run_alims_live.py > logs/main_system.log 2>&1 &
     MAIN_PID=$!
     echo $MAIN_PID > "$SCRIPT_DIR/main_system.pid"
     
     # Start tray application  
     echo "Starting system tray..."
-    python backend/scripts/celflow_tray.py > logs/tray.log 2>&1 &
+    python backend/scripts/alims_tray.py > logs/tray.log 2>&1 &
     TRAY_PID=$!
     echo $TRAY_PID > "$SCRIPT_DIR/tray.pid"
     
@@ -204,7 +204,7 @@ start_main_system() {
 
 # Function to stop all components
 stop_all() {
-    echo "Stopping CelFlow components..."
+    echo "Stopping ALIMS components..."
     
     # Stop Tauri tray
     stop_process "tauri_tray.pid" "Tauri tray"
@@ -231,7 +231,7 @@ stop_all() {
     pkill -f "tauri dev"
     pkill -f "npm run tauri"
     pkill -f "node.*tauri"
-    pkill -f "CelFlow Desktop"
+    pkill -f "ALIMS Desktop"
     pkill -f "ollama serve"
     
     # Kill processes on ports 3000, 8000, and 11434
@@ -244,11 +244,11 @@ stop_all() {
 
 # Function to start all components
 start_all() {
-    echo "Starting CelFlow..."
+    echo "Starting ALIMS..."
     
     # Start Ollama service first (required for AI)
     if ! check_start_ollama; then
-        echo "❌ Failed to start Ollama. CelFlow AI features will not work."
+        echo "❌ Failed to start Ollama. ALIMS AI features will not work."
         echo "Please install Ollama from https://ollama.ai and try again."
         return 1
     fi
@@ -266,7 +266,7 @@ start_all() {
     # Start main system
     start_main_system
     
-    echo "CelFlow started"
+    echo "ALIMS started"
     
     # Show running processes
     echo -e "\nRunning processes:"
@@ -275,7 +275,7 @@ start_all() {
 
 # Function to restart the system
 restart_system() {
-    echo "Restarting CelFlow..."
+    echo "Restarting ALIMS..."
     stop_all
     sleep 2
     start_all

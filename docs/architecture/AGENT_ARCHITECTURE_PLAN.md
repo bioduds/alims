@@ -1,4 +1,4 @@
-# CelFlow True Agent Architecture Plan
+# ALims True Agent Architecture Plan
 
 ## Current Problem
 The existing "agents" are NOT real agents - they're just wrapper functions around the same Gemma 3:4b model. This is fundamentally wrong.
@@ -143,7 +143,7 @@ Output: {
 ## Implementation Steps
 
 ### Step 1: Data Pipeline
-1. ✅ Event database exists (`data/celflow_events.db`)
+1. ✅ Event database exists (`data/alims_events.db`)
 2. ❌ Need clustering system for event data
 3. ❌ Need feature extraction from clusters
 4. ❌ Need training/validation data splits

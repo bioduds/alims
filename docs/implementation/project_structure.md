@@ -1,9 +1,9 @@
-# CelFlow - AI Operating System Layer
+# ALims - AI Operating System Layer
 
 ## Project Structure
 
 ```
-celflow/
+alims/
 ├── app/
 │   ├── __init__.py
 │   ├── main.py                     # Main application entry point

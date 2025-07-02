@@ -1,4 +1,4 @@
-# CelFlow File Structure Reorganization Plan
+# ALims File Structure Reorganization Plan
 
 ## Current Issues
 - **Root Directory Clutter**: 30+ files including tests, scripts, logs, and analysis tools
@@ -11,7 +11,7 @@
 ## Proposed Structure
 
 ```
-celflow/
+alims/
 ├── README.md                          # Main project readme
 ├── .gitignore                         # Git ignore rules
 ├── pyproject.toml                     # Python project configuration (NEW)
@@ -29,11 +29,11 @@ celflow/
 │   │   └── main.py                  # Main entry point
 │   │
 │   ├── scripts/                     # Python scripts (NEW)
-│   │   ├── launch_celflow.sh        # MOVED from root
+│   │   ├── launch_alims.sh        # MOVED from root
 │   │   ├── launch_tray.py           # MOVED from root
-│   │   ├── run_celflow_live.py      # MOVED from root
-│   │   ├── run_visual_celflow.py    # MOVED from root
-│   │   └── celflow.py               # MOVED from root
+│   │   ├── run_alims_live.py      # MOVED from root
+│   │   ├── run_visual_alims.py    # MOVED from root
+│   │   └── alims.py               # MOVED from root
 │   │
 │   ├── analysis/                    # Data analysis tools (NEW)
 │   │   ├── analyze_event_data.py    # MOVED from root
@@ -74,7 +74,7 @@ celflow/
 │   ├── context/
 │   ├── patterns/
 │   ├── training/
-│   └── celflow_events.db
+│   └── alims_events.db
 │
 ├── docs/                            # Documentation (KEPT - already organized)
 │   ├── architecture/
@@ -98,7 +98,7 @@ celflow/
 │   └── development/                 # Development helpers
 │
 └── environments/                    # Environment management (NEW)
-    ├── celflow_env/                 # MOVED from root
+    ├── alims_env/                 # MOVED from root
     ├── docker/                      # Docker configurations
     └── scripts/                     # Environment setup scripts
 ```
@@ -144,12 +144,12 @@ celflow/
 ## Files to Move
 
 ### From Root to `backend/scripts/`:
-- `launch_celflow.sh`
+- `launch_alims.sh`
 - `launch_tray.py`
-- `run_celflow_live.py`
-- `run_visual_celflow.py`
-- `celflow.py`
-- `celflow_tray.py`
+- `run_alims_live.py`
+- `run_visual_alims.py`
+- `alims.py`
+- `alims_tray.py`
 
 ### From Root to `backend/analysis/`:
 - `analyze_event_data.py`
@@ -163,7 +163,7 @@ celflow/
 
 ### From Root to `frontend/desktop/`:
 - `src/`
-- `celflow-desktop/src-tauri/`
+- `alims-desktop/src-tauri/`
 - `package.json`
 - `package-lock.json`
 - `tsconfig.json`
@@ -177,7 +177,7 @@ celflow/
 - Create `.gitignore` to exclude logs from git
 
 ### From Root to `environments/`:
-- `celflow_env/`
+- `alims_env/`
 
 ## Implementation Priority
 

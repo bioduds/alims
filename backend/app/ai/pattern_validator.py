@@ -2,7 +2,7 @@
 PatternValidator - Advanced Pattern Classification Coherence Agent
 
 This agent ensures pattern classification consistency and quality across
-the CelFlow system. It validates classifications, resolves conflicts,
+the ALims system. It validates classifications, resolves conflicts,
 and maintains system coherence.
 """
 
@@ -147,7 +147,7 @@ class PatternValidator:
     """
     Advanced Pattern Classification Coherence Agent
 
-    Ensures pattern classification consistency and quality across CelFlow
+    Ensures pattern classification consistency and quality across ALims
     system. Validates classifications, resolves conflicts, and maintains
     system coherence.
     """

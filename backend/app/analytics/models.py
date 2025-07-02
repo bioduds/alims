@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pydantic models for CelFlow clustering analysis
+Pydantic models for ALims clustering analysis
 Provides type-safe data structures with validation
 """
 
@@ -38,7 +38,7 @@ class ClusteringAlgorithm(str, Enum):
 
 
 class EventType(str, Enum):
-    """Event types in CelFlow"""
+    """Event types in ALims"""
     FILE_OP = "file_op"
     APP_EVENT = "app_event"
     SYSTEM_EVENT = "system_event"

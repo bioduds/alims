@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Agent-User Interaction Interface
+ALims Agent-User Interaction Interface
 
 Provides interfaces for users to interact with their AI agents:
 - Chat interface for direct communication
@@ -304,7 +304,7 @@ class AgentChatInterface:
             "agent_not_found": "I couldn't find an agent named '{agent_name}'. Available agents: {available_agents}",
             "processing_error": "I encountered an error while processing your request. Please try again.",
             "task_delegated": "I've delegated this task to {agent_name}. They'll work on it and update you on progress.",
-            "general_help": """I'm CelFlow, your AI operating system! Here's how you can interact with me:
+            "general_help": """I'm ALims, your AI operating system! Here's how you can interact with me:
 
 🤖 **Chat with Agents**: Just type naturally - I'll route your message to the best agent
 📋 **Delegate Tasks**: Say "Please [task]" and I'll assign it to the right specialist
@@ -337,7 +337,7 @@ Try saying:
         # Add welcome message
         welcome_response = AgentResponse(
             content=self.response_templates["general_help"],
-            agent_name="CelFlow System",
+            agent_name="ALims System",
             agent_specialization="general",
             response_type=InteractionType.CHAT,
             confidence=1.0,
@@ -383,7 +383,7 @@ Try saying:
             self.logger.error(f"Error processing message: {e}")
             return AgentResponse(
                 content=self.response_templates["processing_error"],
-                agent_name="CelFlow System",
+                agent_name="ALims System",
                 agent_specialization="error_handling",
                 response_type=message.message_type,
                 confidence=0.5,
@@ -400,7 +400,7 @@ Try saying:
         ):
             return AgentResponse(
                 content=self.response_templates["general_help"],
-                agent_name="CelFlow System",
+                agent_name="ALims System",
                 agent_specialization="help",
                 response_type=InteractionType.CHAT,
                 confidence=1.0,
@@ -426,7 +426,7 @@ Try saying:
             if not agents:
                 return AgentResponse(
                     content=self.response_templates["no_agents"],
-                    agent_name="CelFlow System",
+                    agent_name="ALims System",
                     agent_specialization="system",
                     response_type=InteractionType.CHAT,
                     confidence=0.8,
@@ -435,7 +435,7 @@ Try saying:
                 # No good match, provide general response
                 return AgentResponse(
                     content=f"I have {len(agents)} active agents, but I'm not sure which one would be best for your request. Could you be more specific about what you need help with?",
-                    agent_name="CelFlow System",
+                    agent_name="ALims System",
                     agent_specialization="routing",
                     response_type=InteractionType.CHAT,
                     confidence=0.6,
@@ -457,7 +457,7 @@ Try saying:
         if not selected_agent:
             return AgentResponse(
                 content="I don't have a suitable agent available for this task right now.",
-                agent_name="CelFlow System",
+                agent_name="ALims System",
                 agent_specialization="task_management",
                 response_type=InteractionType.TASK_DELEGATION,
                 confidence=0.5,
@@ -485,7 +485,7 @@ Try saying:
         """Handle user feedback"""
         return AgentResponse(
             content="Thank you for your feedback! I'm learning from your input to improve my assistance. Your feedback helps me understand your preferences and work style better.",
-            agent_name="CelFlow System",
+            agent_name="ALims System",
             agent_specialization="learning",
             response_type=InteractionType.FEEDBACK,
             confidence=0.9,
@@ -495,7 +495,7 @@ Try saying:
         """Handle agent customization requests"""
         return AgentResponse(
             content="Agent customization features are coming soon! You'll be able to adjust agent personalities, preferences, and behavior patterns to better match your workflow.",
-            agent_name="CelFlow System",
+            agent_name="ALims System",
             agent_specialization="customization",
             response_type=InteractionType.CUSTOMIZATION,
             confidence=0.7,
@@ -518,7 +518,7 @@ Try saying:
             if not agents:
                 return AgentResponse(
                     content=self.response_templates["no_agents"],
-                    agent_name="CelFlow System",
+                    agent_name="ALims System",
                     agent_specialization="system",
                     response_type=InteractionType.MONITORING,
                     confidence=1.0,
@@ -541,7 +541,7 @@ Tasks Completed: {agent.task_count}
 
             return AgentResponse(
                 content=content,
-                agent_name="CelFlow System",
+                agent_name="ALims System",
                 agent_specialization="monitoring",
                 response_type=InteractionType.MONITORING,
                 confidence=1.0,
@@ -551,7 +551,7 @@ Tasks Completed: {agent.task_count}
             self.logger.error(f"Error showing agents: {e}")
             return AgentResponse(
                 content="Error retrieving agent information.",
-                agent_name="CelFlow System",
+                agent_name="ALims System",
                 agent_specialization="error_handling",
                 response_type=InteractionType.MONITORING,
                 confidence=0.5,
@@ -564,7 +564,7 @@ Tasks Completed: {agent.task_count}
             system_info = status.get("system", {})
             embryo_info = status.get("embryo_pool", {})
 
-            content = f"""**CelFlow System Status:**
+            content = f"""**ALims System Status:**
 
 🤖 **Agents:**
 • Active: {system_info.get('active_agents', 0)}
@@ -584,7 +584,7 @@ The system is learning from your patterns and evolving specialized agents to ass
 
             return AgentResponse(
                 content=content,
-                agent_name="CelFlow System",
+                agent_name="ALims System",
                 agent_specialization="monitoring",
                 response_type=InteractionType.MONITORING,
                 confidence=1.0,
@@ -594,7 +594,7 @@ The system is learning from your patterns and evolving specialized agents to ass
             self.logger.error(f"Error getting system status: {e}")
             return AgentResponse(
                 content="Error retrieving system status.",
-                agent_name="CelFlow System",
+                agent_name="ALims System",
                 agent_specialization="error_handling",
                 response_type=InteractionType.MONITORING,
                 confidence=0.5,

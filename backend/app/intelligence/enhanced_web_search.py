@@ -1,5 +1,5 @@
 """
-Enhanced Web Search Integration for CelFlow AI
+Enhanced Web Search Integration for ALims AI
 
 This module provides multiple web search capabilities including:
 - SearXNG (primary when available)
@@ -35,7 +35,7 @@ class MultiSourceWebSearch:
         self.searxng_url = "http://localhost:8080"
         self.timeout = 10
         self.max_results = 5
-        self.user_agent = "CelFlow-AI/1.0 (Educational Research)"
+        self.user_agent = "ALims-AI/1.0 (Educational Research)"
         
     async def search_and_summarize(self, query: str, context: str = "") -> Dict[str, Any]:
         """
@@ -265,7 +265,7 @@ class MultiSourceWebSearch:
 
 class IntelligentWebSearch:
     """
-    Main web search interface for CelFlow AI.
+    Main web search interface for ALims AI.
     Maintains compatibility with existing code while using enhanced search.
     """
     

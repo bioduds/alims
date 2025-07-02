@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Content Filter
+ALims Content Filter
 
 Privacy-first content filtering system that removes sensitive information
 from system events before they reach the embryos.

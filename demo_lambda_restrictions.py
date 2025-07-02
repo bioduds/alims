@@ -15,7 +15,7 @@ from backend.app.ai.central_brain import CentralAIBrain
 async def demo_lambda_restrictions():
     """Demo the Lambda restrictions with clear examples"""
     
-    print("🎭 CELFLOW LAMBDA RESTRICTIONS DEMO")
+    print("🎭 ALIMS LAMBDA RESTRICTIONS DEMO")
     print("=" * 50)
     
     # Mock config for testing

@@ -1,5 +1,5 @@
 """
-Web Search Integration using SearXNG for CelFlow AI
+Web Search Integration using SearXNG for ALims AI
 
 This module provides intelligent web search capabilities for Gemma to access
 real-time information when making decisions about analysis and visualizations.
@@ -41,7 +41,7 @@ class SearXNGClient:
         self.session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30),
             headers={
-                'User-Agent': 'CelFlow-AI/1.0 (Intelligence Agent)',
+                'User-Agent': 'ALims-AI/1.0 (Intelligence Agent)',
                 'Accept': 'application/json'
             }
         )
@@ -400,7 +400,7 @@ class SimpleFallbackSearch:
         self.session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=15),
             headers={
-                'User-Agent': 'CelFlow-AI/1.0 (Intelligence Agent)',
+                'User-Agent': 'ALims-AI/1.0 (Intelligence Agent)',
                 'Accept': 'application/json'
             }
         )

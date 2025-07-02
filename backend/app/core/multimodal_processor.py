@@ -1,5 +1,5 @@
 """
-CelFlow Multimodal Processing System
+ALims Multimodal Processing System
 Handles image analysis, data processing, code analysis, and visual content generation
 for Gemma 3:4b multimodal capabilities
 """
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class MultimodalProcessor:
-    """Handles multimodal content processing for CelFlow AI system"""
+    """Handles multimodal content processing for ALims AI system"""
     
     def __init__(self):
         self.supported_image_formats = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.webp'}
@@ -274,13 +274,13 @@ graph TD
                 return f"""
 sequenceDiagram
     participant User
-    participant CelFlow
+    participant ALims
     participant Gemma3
     
-    User->>CelFlow: Send Message
-    CelFlow->>Gemma3: Process Request
-    Gemma3->>CelFlow: Generate Response
-    CelFlow->>User: Display Result
+    User->>ALims: Send Message
+    ALims->>Gemma3: Process Request
+    Gemma3->>ALims: Generate Response
+    ALims->>User: Display Result
 """
             elif diagram_type == "class":
                 return f"""
@@ -292,12 +292,12 @@ classDiagram
         +capture_screenshot()
     }}
     
-    class CelFlowAI {{
+    class ALimsAI {{
         +chat_with_ai()
         +generate_visualization()
     }}
     
-    MultimodalProcessor --> CelFlowAI
+    MultimodalProcessor --> ALimsAI
 """
             else:
                 return f"graph LR\n    A[{content}] --> B[Generated Diagram]"

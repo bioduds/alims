@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Data Stream Monitor
+ALims Data Stream Monitor
 
 Monitors system events and feeds them to the embryo pool.
 This is a simplified version for the initial implementation.

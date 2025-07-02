@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CelFlow with macOS System Tray Integration
+ALims with macOS System Tray Integration
 
-This launcher runs CelFlow with full macOS system tray integration.
+This launcher runs ALims with full macOS system tray integration.
 The tray app runs on the main thread while the core system runs in background.
 """
 
@@ -14,22 +14,22 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import after path setup
-from app.system.tray_launcher import run_celflow_with_tray
+from app.system.tray_launcher import run_alims_with_tray
 
 
 def main():
-    """Main entry point for CelFlow with tray integration"""
+    """Main entry point for ALims with tray integration"""
 
     # Setup logging
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(
         level=logging.INFO,
         format=log_format,
-        handlers=[logging.StreamHandler(), logging.FileHandler("celflow_tray.log")],
+        handlers=[logging.StreamHandler(), logging.FileHandler("alims_tray.log")],
     )
 
-    logger = logging.getLogger("CelFlowTrayMain")
-    logger.info("🚀 Starting CelFlow with macOS Tray Integration")
+    logger = logging.getLogger("AlimsTrayMain")
+    logger.info("🚀 Starting ALims with macOS Tray Integration")
 
     # Configuration
     config = {
@@ -64,16 +64,16 @@ def main():
     }
 
     try:
-        # Run CelFlow with tray integration
-        run_celflow_with_tray(config)
+        # Run ALims with tray integration
+        run_alims_with_tray(config)
 
     except KeyboardInterrupt:
-        logger.info("🛑 CelFlow interrupted by user")
+        logger.info("🛑 ALims interrupted by user")
     except Exception as e:
-        logger.error(f"❌ CelFlow error: {e}")
+        logger.error(f"❌ ALims error: {e}")
         raise
     finally:
-        logger.info("👋 CelFlow shutdown complete")
+        logger.info("👋 ALims shutdown complete")
 
 
 if __name__ == "__main__":

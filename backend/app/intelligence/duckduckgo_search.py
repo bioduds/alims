@@ -1,5 +1,5 @@
 """
-DuckDuckGo Web Search for CelFlow AI
+DuckDuckGo Web Search for ALims AI
 
 A simple and reliable web search implementation using DuckDuckGo's APIs.
 No Docker or complex dependencies required.
@@ -26,7 +26,7 @@ class DuckDuckGoSearch:
     def __init__(self):
         self.timeout = 10
         self.max_results = 5
-        self.user_agent = "CelFlow-AI/1.0 (Educational Research)"
+        self.user_agent = "ALims-AI/1.0 (Educational Research)"
         
     async def search_and_summarize(self, query: str, context: str = "") -> Dict[str, Any]:
         """
@@ -235,7 +235,7 @@ class DuckDuckGoSearch:
 
 class IntelligentWebSearch:
     """
-    Main web search interface for CelFlow AI using DuckDuckGo.
+    Main web search interface for ALims AI using DuckDuckGo.
     """
     
     def __init__(self):

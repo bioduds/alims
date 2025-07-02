@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CelFlow Real-Time Dashboard
+ALims Real-Time Dashboard
 
-Monitor CelFlow system status, event capture, and AI learning progress.
+Monitor ALims system status, event capture, and AI learning progress.
 """
 
 import sys
@@ -19,12 +19,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from app.system.event_persistence import EventDatabase
 
 
-class CelFlowDashboard:
+class ALimsDashboard:
     """
-    CelFlow Event Dashboard
+    ALims Event Dashboard
     
     A comprehensive web-based dashboard for visualizing and analyzing
-    CelFlow system events, patterns, and agent activities.
+    ALims system events, patterns, and agent activities.
     """
 
     def __init__(self, db_path="data/events.db"):
@@ -77,7 +77,7 @@ class CelFlowDashboard:
     def display_header(self):
         """Display dashboard header"""
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print("🧠 CelFlow AI Operating System - Real-Time Dashboard")
+        print("🧠 ALims AI Operating System - Real-Time Dashboard")
         print("=" * 60)
         print(f"📅 {now} | 🔄 Refreshing every 5 seconds")
         print("=" * 60)
@@ -98,7 +98,7 @@ class CelFlowDashboard:
                 print(f"❌ Persistence: Error - {e}")
         else:
             print("❌ Event Database: Not Found")
-            print("   Run CelFlow to create database")
+            print("   Run ALims to create database")
 
     def display_event_statistics(self, stats):
         """Display event capture statistics"""
@@ -187,7 +187,7 @@ class CelFlowDashboard:
 
         except KeyboardInterrupt:
             self.clear_screen()
-            print("👋 CelFlow Dashboard stopped.")
+            print("👋 ALims Dashboard stopped.")
             print("Thank you for monitoring your AI Operating System!")
 
 
@@ -195,14 +195,14 @@ def main():
     """Main entry point"""
     import argparse
 
-    parser = argparse.ArgumentParser(description="CelFlow Real-Time Dashboard")
+    parser = argparse.ArgumentParser(description="ALims Real-Time Dashboard")
     parser.add_argument(
         "--db", default="data/events.db", help="Database path (default: data/events.db)"
     )
 
     args = parser.parse_args()
 
-    dashboard = CelFlowDashboard(args.db)
+    dashboard = ALimsDashboard(args.db)
     dashboard.run_dashboard()
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Event Persistence System
+ALims Event Persistence System
 
 High-performance persistent storage for all captured events:
 - SQLite database with optimized schema

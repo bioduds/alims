@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CelFlow Events CLI Tool
+ALims Events CLI Tool
 
-Query and analyze persisted events from the CelFlow database.
+Query and analyze persisted events from the ALims database.
 """
 
 import sys
@@ -55,7 +55,7 @@ def display_events(events, limit=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CelFlow Events CLI Tool")
+    parser = argparse.ArgumentParser(description="ALims Events CLI Tool")
     parser.add_argument(
         "--db", default="data/events.db", help="Database path (default: data/events.db)"
     )
@@ -98,7 +98,7 @@ def main():
     # Check if database exists
     if not os.path.exists(args.db):
         print(f"Database not found: {args.db}")
-        print("Make sure CelFlow has been running with persistence enabled.")
+        print("Make sure ALims has been running with persistence enabled.")
         return
 
     try:
@@ -106,7 +106,7 @@ def main():
 
         if args.command == "stats":
             stats = db.get_database_stats()
-            print("📊 CelFlow Event Database Statistics")
+            print("📊 ALims Event Database Statistics")
             print("=" * 40)
             print(f"Total Events: {stats.get('total_events', 0):,}")
             print(f"Total Patterns: {stats.get('total_patterns', 0):,}")

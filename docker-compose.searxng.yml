@@ -3,12 +3,12 @@ version: '3.8'
 services:
   searxng:
     image: searxng/searxng:latest
-    container_name: celflow-searxng
+    container_name: alims-searxng
     ports:
       - "8080:8080"
     environment:
       - BASE_URL=http://localhost:8080/
-      - INSTANCE_NAME=CelFlow-SearXNG
+      - INSTANCE_NAME=ALims-SearXNG
     volumes:
       - ./searxng/searxng:/etc/searxng:ro
     restart: unless-stopped

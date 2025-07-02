@@ -1,4 +1,4 @@
-# CelFlow Desktop App Technology Strategy
+# ALims Desktop App Technology Strategy
 
 ## Current State
 - **rumps-based tray app**: Basic macOS menu interface
@@ -9,7 +9,7 @@
 ## Technology Recommendations
 
 ### 🥇 **Primary Recommendation: Tauri 2.0**
-**Why it's perfect for CelFlow:**
+**Why it's perfect for ALims:**
 
 #### Advantages
 - ✅ **Tiny footprint**: 5-12 MB vs 150+ MB for Electron
@@ -19,7 +19,7 @@
 - ✅ **Security**: Secure IPC model for sensitive user data
 - ✅ **Cross-platform**: Future Windows/Linux support
 
-#### Perfect for CelFlow's needs
+#### Perfect for ALims's needs
 - **Real-time visualizations**: Clustering results, pattern evolution
 - **Data-heavy UI**: 130K+ events, multiple algorithms, live metrics
 - **Performance critical**: Continuous learning pipeline needs efficiency
@@ -45,7 +45,7 @@ Frontend (Web Tech):     Backend (Rust):
 - ✅ **Apple ecosystem**: App Store distribution
 - ✅ **Native performance**: Liquid Glass UI, smooth animations
 
-#### Challenges for CelFlow
+#### Challenges for ALims
 - ❌ **Python integration**: Complex bridge to our ML pipeline
 - ❌ **Cross-platform**: Mac-only limits future expansion
 - ❌ **Development velocity**: Team needs Swift expertise
@@ -159,7 +159,7 @@ async fn get_real_time_metrics() -> Result<SystemMetrics, String> {
 - ✅ App signing and distribution
 - ✅ User documentation
 
-## Technical Benefits for CelFlow
+## Technical Benefits for ALims
 
 ### Performance
 - **5-12 MB binary** vs current Python + dependencies
@@ -196,7 +196,7 @@ async fn get_real_time_metrics() -> Result<SystemMetrics, String> {
 
 ## Conclusion
 
-**Tauri 2.0 is the optimal choice for CelFlow** because it:
+**Tauri 2.0 is the optimal choice for ALims** because it:
 - Provides native performance for our data-heavy visualizations
 - Maintains small footprint for continuous operation
 - Leverages our existing Python ML pipeline

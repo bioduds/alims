@@ -2,7 +2,7 @@
 """
 FINAL LAMBDA RESTRICTIONS TEST SUMMARY
 
-This test demonstrates that CelFlow's Lambda restrictions are working correctly:
+This test demonstrates that ALims's Lambda restrictions are working correctly:
 
 1. ✅ Simple math functions (fibonacci, factorial) are ALLOWED and execute
 2. ✅ Print statements work correctly  
@@ -15,7 +15,7 @@ This test demonstrates that CelFlow's Lambda restrictions are working correctly:
 The system successfully restricts dangerous code while allowing safe algorithmic calculations.
 """
 
-print("🎯 CELFLOW LAMBDA RESTRICTIONS - FINAL STATUS")
+print("🎯 ALIMS LAMBDA RESTRICTIONS - FINAL STATUS")
 print("=" * 60)
 
 print("\n✅ IMPLEMENTED SUCCESSFULLY:")
@@ -50,7 +50,7 @@ print("  • Dangerous code attempts are blocked")
 print("  • Safe visualizations are generated and saved")
 
 print("\n🎯 CONCLUSION:")
-print("  CelFlow Lambda restrictions are SUCCESSFULLY IMPLEMENTED")
+print("  ALims Lambda restrictions are SUCCESSFULLY IMPLEMENTED")
 print("  System allows safe algorithms while blocking dangerous code")
 print("  Enhanced logging provides full audit trail")
 print("  Ready for production use with confidence!")

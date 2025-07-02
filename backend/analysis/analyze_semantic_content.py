@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Semantic Content Analysis of CelFlow Events
+Semantic Content Analysis of ALims Events
 Analyzes the actual meaning and context of events to understand
 what agents should semantically understand and act upon.
 """
@@ -88,7 +88,7 @@ def analyze_file_semantics(file_events):
         # Development workflow detection
         if any(
             keyword in path_lower
-            for keyword in ["celflow", "projects", ".py", ".js", ".ts", ".git"]
+            for keyword in ["alims", "projects", ".py", ".js", ".ts", ".git"]
         ):
             semantic_categories["development_workflow"].append(event)
 

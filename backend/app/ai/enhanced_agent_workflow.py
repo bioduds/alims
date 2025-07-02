@@ -1,5 +1,5 @@
 """
-CelFlow Enhanced Agent Workflow System
+ALims Enhanced Agent Workflow System
 Implements sophisticated workflow orchestration for Gemma 3:4B agent
 """
 
@@ -153,7 +153,7 @@ class EnhancedAgentWorkflow:
         available_tools = self.tool_registry.get_tools_for_context(user_message)
         tool_descriptions = self.tool_registry.generate_tool_descriptions(available_tools)
         
-        planning_prompt = f"""You are CelFlow AI, a sophisticated assistant that can break down complex tasks into workflows and use tools effectively.
+        planning_prompt = f"""You are ALims AI, a sophisticated assistant that can break down complex tasks into workflows and use tools effectively.
 
 AVAILABLE TOOLS:
 {tool_descriptions}
@@ -474,7 +474,7 @@ Provide a helpful, complete response that addresses the user's request using the
         
         tool_list = [tool.name for tool in available_tools] if available_tools else []
         
-        return f"""You are CelFlow AI, a helpful and intelligent assistant.
+        return f"""You are ALims AI, a helpful and intelligent assistant.
 
 Available capabilities: {', '.join(tool_list) if tool_list else 'general conversation'}
 

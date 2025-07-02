@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Intelligent Event Clustering System
+ALims Intelligent Event Clustering System
 
 Advanced clustering techniques optimized for your data characteristics:
 - HDBSCAN for varying density and noise handling (primary choice)
@@ -35,7 +35,7 @@ except ImportError:
 
 
 class EventFeatureExtractor:
-    """Extract numerical features optimized for CelFlow event data"""
+    """Extract numerical features optimized for ALims event data"""
 
     def __init__(self):
         self.logger = logging.getLogger("EventFeatureExtractor")
@@ -438,7 +438,7 @@ class OptimizedClusteringEngine:
 
 
 class IntelligentEventClustering:
-    """Main intelligent clustering system optimized for CelFlow"""
+    """Main intelligent clustering system optimized for ALims"""
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
@@ -663,5 +663,5 @@ class IntelligentEventClustering:
 
 # Factory function for easy integration
 def create_intelligent_clustering(config: Dict[str, Any]) -> IntelligentEventClustering:
-    """Create optimized clustering system for CelFlow data"""
+    """Create optimized clustering system for ALims data"""
     return IntelligentEventClustering(config)

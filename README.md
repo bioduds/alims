@@ -2,7 +2,7 @@
 
 ## Overview
 
-ALIMS (Advanced Language Intelligence Management System) is a sophisticated AI agent platform built on top of the CelFlow architecture. It features a powerful Gemma 3:4B-based agent with advanced tool-calling capabilities, workflow orchestration, and web search integration.
+ALIMS (Advanced Language Intelligence Management System) is a sophisticated AI agent platform built on top of the ALims architecture. It features a powerful Gemma 3:4B-based agent with advanced tool-calling capabilities, workflow orchestration, and web search integration.
 
 ## Key Features
 
@@ -90,7 +90,7 @@ ollama pull gemma2:27b  # or gemma2:9b for faster performance
 4. **Launch ALIMS**
 
 ```bash
-./launch_celflow.sh
+./launch_alims.sh
 ```
 
 ### Usage Examples

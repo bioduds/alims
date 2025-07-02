@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Pattern Detector
+ALims Pattern Detector
 
 Lightweight neural network for detecting patterns in system events.
 Each embryo has its own pattern detector that learns to identify

@@ -143,7 +143,7 @@ function App() {
         id: (Date.now() + 1).toString(),
         text: aiStatus ? 
           'Sorry, I encountered an error. Please try again.' : 
-          'AI system is not available. Please make sure the CelFlow AI server is running.',
+          'AI system is not available. Please make sure the ALims AI server is running.',
         sender: 'ai',
         timestamp: new Date()
       };
@@ -381,7 +381,7 @@ function App() {
       <div className="w-96 bg-gray-800 border-r border-gray-700 flex flex-col">
         {/* Chat header */}
         <div className="p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-blue-400">CelFlow AI Chat</h2>
+          <h2 className="text-xl font-bold text-blue-400">ALims AI Chat</h2>
           <p className="text-sm text-gray-400">
             Ask Gemma 3:4b to analyze data and create visualizations
           </p>
@@ -415,7 +415,7 @@ function App() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 && (
             <div className="text-center text-gray-500 mt-8">
-              <p>🧠 Welcome to CelFlow AI!</p>
+              <p>🧠 Welcome to ALims AI!</p>
               <p className="text-sm mt-2">Ask me to:</p>
               <div className="text-xs mt-2 space-y-1 text-left">
                 <p>• "Plot a sine wave"</p>
@@ -519,7 +519,7 @@ function App() {
         {/* Stage header */}
         <div className="p-4 border-b border-gray-700">
           <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
-            CelFlow AI Visualization Stage
+            ALims AI Visualization Stage
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             Powered by Gemma 3:4b • Dynamic data analysis and visualization

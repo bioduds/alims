@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClusteringResult, ClusteringAlgorithm } from "../types/celflow";
+import { ClusteringResult, ClusteringAlgorithm } from "../types/alims";
 
 interface ClusteringResultsProps {
   results: {

@@ -1,5 +1,5 @@
 """
-CelFlow Enhanced Agent Integration
+ALims Enhanced Agent Integration
 Integrates the enhanced agent system with the existing CentralAIBrain
 """
 
@@ -81,7 +81,7 @@ class EnhancedAgentIntegration:
                 # Direct ollama response as last resort
                 response = await self.central_brain.ollama_client.generate_response(
                     prompt=message,
-                    system_prompt="You are CelFlow AI, a helpful assistant.",
+                    system_prompt="You are ALims AI, a helpful assistant.",
                     context=context
                 )
                 

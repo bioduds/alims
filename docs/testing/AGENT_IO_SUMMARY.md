@@ -1,4 +1,4 @@
-# CelFlow AI Agents: Quick I/O Reference
+# ALims AI Agents: Quick I/O Reference
 
 ## 📊 Agent Input/Output Summary Table
 
@@ -109,4 +109,4 @@ python test_all_agents.py --agent pattern --verbose
 python test_all_agents.py --agent suggestion --verbose
 ```
 
-This quick reference helps developers understand the essential input/output patterns for integrating with CelFlow's AI agents. 
+This quick reference helps developers understand the essential input/output patterns for integrating with ALims's AI agents. 

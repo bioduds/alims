@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CelFlow - Self-Evolving AI Operating System Layer
+ALims - Self-Evolving AI Operating System Layer
 
-The main entry point for the CelFlow system.
+The main entry point for the ALims system.
 This module coordinates all system components including:
 - Event capture and monitoring
 - Agent management and evolution
@@ -21,30 +21,30 @@ from typing import Optional
 from backend.app.core.data_stream import DataStreamMonitor
 from backend.app.core.embryo_pool import EmbryoPool
 from backend.app.system.permissions import PermissionManager
-from backend.app.system.tray_icon import CelFlowTrayIcon
+from backend.app.system.tray_icon import AlimsTrayIcon
 
 
-class CelFlowApp:
+class AlimsApp:
     """
-    Main CelFlow application that coordinates all components.
-    
+    Main ALIMS application that coordinates all components.
+
     This is the central orchestrator that manages:
     - System initialization and shutdown
     - Component lifecycle management
     - Inter-component communication
     - Error handling and recovery
     """
-    
+
     def __init__(self):
-        self.logger = logging.getLogger('CelFlowApp')
+        self.logger = logging.getLogger("AlimsApp")
         self.running = False
-        
+
         # Core components
         self.embryo_pool: Optional[EmbryoPool] = None
         self.data_stream: Optional[DataStreamMonitor] = None
         self.permission_manager: Optional[PermissionManager] = None
-        self.tray_icon: Optional[CelFlowTrayIcon] = None
-        
+        self.tray_icon: Optional[AlimsTrayIcon] = None
+
         # Configuration
         self.config = {
             'max_embryos': 15,
@@ -53,142 +53,138 @@ class CelFlowApp:
             'enable_tray': True,
             'log_level': 'INFO'
         }
-        
+
         # Setup signal handlers
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
-    
+
     async def initialize(self):
-        """Initialize all CelFlow components"""
+        """Initialize all ALims components"""
         try:
-            self.logger.info("Initializing CelFlow...")
-            
+            self.logger.info("Initializing ALIMS...")
+
             # Initialize permission manager first
             self.permission_manager = PermissionManager()
             if not await self.permission_manager.request_permissions():
                 self.logger.error("Failed to obtain required permissions")
                 return False
-            
+
             # Initialize embryo pool
             self.embryo_pool = EmbryoPool(
                 max_embryos=self.config['max_embryos'],
                 data_buffer_limit_mb=self.config['data_buffer_limit_mb']
             )
-            
+
             # Initialize data stream monitor
             self.data_stream = DataStreamMonitor(
                 embryo_pool=self.embryo_pool,
                 privacy_mode=self.config['privacy_mode']
             )
-            
+
             # Initialize system tray if enabled
             if self.config['enable_tray']:
-                self.tray_icon = CelFlowTrayIcon()
+                self.tray_icon = AlimsTrayIcon()
                 await self.tray_icon.initialize()
-            
-            self.logger.info("CelFlow initialization complete")
+
+            self.logger.info("ALIMS initialization complete")
             return True
-            
+
         except Exception as e:
-            self.logger.error(f"Failed to initialize CelFlow: {e}")
+            self.logger.error(f"Failed to initialize ALims: {e}")
             return False
-    
+
     async def start(self):
-        """Start the CelFlow system"""
+        """Start the ALIMS system"""
         try:
             if not await self.initialize():
                 return False
-            
+
             self.running = True
-            self.logger.info("Starting CelFlow system...")
-            
+            self.logger.info("Starting ALIMS system...")
+
             # Start core components
             if self.data_stream:
                 await self.data_stream.start()
-            
+
             if self.embryo_pool:
                 await self.embryo_pool.start()
-            
+
             # Show system tray notification
             if self.tray_icon:
                 await self.tray_icon.show_notification(
-                    "CelFlow Started",
-                    "AI Operating System is now active"
+                    "ALIMS Started", "AI Operating System is now active"
                 )
-            
-            self.logger.info("CelFlow system started successfully")
-            
+
+            self.logger.info("ALIMS system started successfully")
+
             # Run main loop
             await self._main_loop()
-            
+
         except Exception as e:
-            self.logger.error(f"Error starting CelFlow: {e}")
+            self.logger.error(f"Error starting ALIMS: {e}")
             return False
-    
+
     async def _main_loop(self):
         """Main application loop"""
         while self.running:
             try:
                 # Monitor system health
                 await self._health_check()
-                
+
                 # Brief sleep to prevent CPU spinning
                 await asyncio.sleep(1)
-                
+
             except Exception as e:
                 self.logger.error(f"Error in main loop: {e}")
                 await asyncio.sleep(5)
-    
+
     async def _health_check(self):
         """Perform system health checks"""
         # Check component health
         if self.embryo_pool and not self.embryo_pool.is_healthy():
             self.logger.warning("Embryo pool health check failed")
-        
+
         if self.data_stream and not self.data_stream.is_healthy():
             self.logger.warning("Data stream health check failed")
-    
+
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully"""
         self.logger.info(f"Received signal {signum}, shutting down...")
         self.running = False
-    
+
     async def stop(self):
-        """Stop the CelFlow system gracefully"""
-        self.logger.info("Shutting down CelFlow...")
+        """Stop the ALIMS system gracefully"""
+        self.logger.info("Shutting down ALIMS...")
         self.running = False
-        
+
         # Stop components in reverse order
         if self.tray_icon:
             await self.tray_icon.cleanup()
-        
+
         if self.data_stream:
             await self.data_stream.stop()
-        
+
         if self.embryo_pool:
             await self.embryo_pool.stop()
-        
-        self.logger.info("CelFlow shutdown complete")
+
+        self.logger.info("ALIMS shutdown complete")
 
 
 def setup_logging(level: str = 'INFO'):
     """Setup logging configuration"""
     logging.basicConfig(
         level=getattr(logging, level.upper()),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler('logs/celflow.log'),
-            logging.StreamHandler()
-        ]
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler("logs/alims.log"), logging.StreamHandler()],
     )
 
 
 async def main():
     """Main entry point"""
     setup_logging()
-    
-    app = CelFlowApp()
-    
+
+    app = AlimsApp()
+
     try:
         await app.start()
     except KeyboardInterrupt:

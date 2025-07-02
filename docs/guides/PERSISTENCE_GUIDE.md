@@ -1,6 +1,6 @@
-# CelFlow Event Persistence System 🗄️
+# ALims Event Persistence System 🗄️
 
-The CelFlow Event Persistence System provides comprehensive, high-performance storage for all captured events, enabling true long-term memory for your AI Operating System.
+The ALims Event Persistence System provides comprehensive, high-performance storage for all captured events, enabling true long-term memory for your AI Operating System.
 
 ## 🌟 Features
 
@@ -69,14 +69,14 @@ CREATE TABLE system_stats (
 ## 🚀 Getting Started
 
 ### Automatic Integration
-Persistence is **enabled by default** when you run CelFlow:
+Persistence is **enabled by default** when you run ALims:
 
 ```bash
 # Headless mode with persistence
-python celflow.py
+python alims.py
 
 # Full macOS integration with persistence
-python celflow_tray.py
+python alims_tray.py
 ```
 
 ### Configuration
@@ -101,16 +101,16 @@ Query and analyze your event data:
 
 ```bash
 # Show database statistics
-python tools/celflow_events.py stats
+python tools/alims_events.py stats
 
 # List recent events
-python tools/celflow_events.py list --hours 2 --limit 50
+python tools/alims_events.py list --hours 2 --limit 50
 
 # Search for specific events
-python tools/celflow_events.py search "chrome" --limit 10
+python tools/alims_events.py search "chrome" --limit 10
 
 # Export events to JSON
-python tools/celflow_events.py export events_backup.json --hours 24
+python tools/alims_events.py export events_backup.json --hours 24
 ```
 
 ### Real-Time Dashboard
@@ -118,10 +118,10 @@ Monitor your system in real-time:
 
 ```bash
 # Launch the dashboard
-python tools/celflow_dashboard.py
+python tools/alims_dashboard.py
 
 # Use custom database path
-python tools/celflow_dashboard.py --db /path/to/events.db
+python tools/alims_dashboard.py --db /path/to/events.db
 ```
 
 The dashboard shows:
@@ -234,9 +234,9 @@ sqlite3 data/events.db "VACUUM;"
 # Check for other processes using the database
 lsof data/events.db
 
-# If needed, restart CelFlow
-pkill -f celflow
-python celflow_tray.py
+# If needed, restart ALims
+pkill -f alims
+python alims_tray.py
 ```
 
 **High disk usage:**
@@ -334,7 +334,7 @@ The persistence system is designed to be extensible. Key areas for contribution:
 
 ## 📄 License
 
-Part of the CelFlow AI Operating System project. See main project license for details.
+Part of the ALims AI Operating System project. See main project license for details.
 
 ---
 

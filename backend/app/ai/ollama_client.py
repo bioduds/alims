@@ -1,5 +1,5 @@
 """
-CelFlow Central AI Brain - Ollama Client
+ALims Central AI Brain - Ollama Client
 Manages connection to local Ollama Gemma 3:4B model
 """
 

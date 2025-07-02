@@ -1,9 +1,9 @@
 {
-  "name": "celflow-desktop",
+  "name": "alims-desktop",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "CelFlow Desktop - Beautiful AI Operating System Interface",
+  "description": "ALims Desktop - Beautiful AI Operating System Interface",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

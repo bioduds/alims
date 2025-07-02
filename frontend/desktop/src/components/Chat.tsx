@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { cn } from '../utils/cn';
-import { Message, ChatResponse, ChatSession } from '../types/celflow';
+import { Message, ChatResponse, ChatSession } from '../types/alims';
 
 interface ChatProps {
   className?: string;
@@ -168,7 +168,7 @@ export const Chat: React.FC<ChatProps> = ({ className }) => {
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-          Chat with CelFlow AI
+          Chat with ALims AI
         </h2>
       </div>
 

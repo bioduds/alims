@@ -82,15 +82,15 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/celflow/celflow"
-Repository = "https://github.com/celflow/celflow"
-Documentation = "https://celflow.readthedocs.io"
-"Bug Tracker" = "https://github.com/celflow/celflow/issues"
+Homepage = "https://github.com/bioduds/alims"
+Repository = "https://github.com/bioduds/alims"
+Documentation = "https://alims.readthedocs.io"
+"Bug Tracker" = "https://github.com/bioduds/alims/issues"
 
 [project.scripts]
-celflow = "backend.app.main:main"
-celflow-tray = "backend.scripts.celflow_tray:main"
-celflow-analysis = "backend.analysis.analyze_event_data:main"
+alims = "backend.app.main:main"
+alims-tray = "backend.scripts.alims_tray:main"
+alims-analysis = "backend.analysis.analyze_event_data:main"
 
 [tool.setuptools]
 packages = ["backend"]

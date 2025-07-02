@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# CelFlow Complete System Launcher
-# This script launches the complete CelFlow system with all components
+# ALims Complete System Launcher
+# This script launches the complete ALims system with all components
 
 set -e  # Exit on any error
 
@@ -19,34 +19,34 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
-    echo -e "${BLUE}[CelFlow]${NC} $1"
+    echo -e "${BLUE}[ALims]${NC} $1"
 }
 
 print_success() {
-    echo -e "${GREEN}[CelFlow]${NC} ✅ $1"
+    echo -e "${GREEN}[ALims]${NC} ✅ $1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[CelFlow]${NC} ⚠️  $1"
+    echo -e "${YELLOW}[ALims]${NC} ⚠️  $1"
 }
 
 print_error() {
-    echo -e "${RED}[CelFlow]${NC} ❌ $1"
+    echo -e "${RED}[ALims]${NC} ❌ $1"
 }
 
 print_header() {
     echo -e "${PURPLE}"
     echo "🎭 ======================================================== 🎭"
-    echo "                 CelFlow System Launcher"
+    echo "                 ALims System Launcher"
     echo "🎭 ======================================================== 🎭"
     echo -e "${NC}"
 }
 
 # Function to check if virtual environment exists
 check_venv() {
-    if [ ! -d "environments/celflow_env" ]; then
-        print_error "Virtual environment 'environments/celflow_env' not found!"
-        print_status "Please create it with: python3 -m venv environments/celflow_env"
+    if [ ! -d "environments/alims_env" ]; then
+        print_error "Virtual environment 'environments/alims_env' not found!"
+        print_status "Please create it with: python3 -m venv environments/alims_env"
         exit 1
     fi
     print_success "Virtual environment found"
@@ -55,17 +55,17 @@ check_venv() {
 # Function to activate virtual environment
 activate_venv() {
     print_status "Activating virtual environment..."
-    source environments/celflow_env/bin/activate
+    source environments/alims_env/bin/activate
     print_success "Virtual environment activated"
 }
 
 # Function to kill existing processes
 cleanup_processes() {
-    print_status "Cleaning up existing CelFlow processes..."
+    print_status "Cleaning up existing ALims processes..."
     
     # First, try to stop processes gracefully using PID files
-    if [ -f "logs/celflow_main.pid" ]; then
-        MAIN_PID=$(cat logs/celflow_main.pid)
+    if [ -f "logs/alims_main.pid" ]; then
+        MAIN_PID=$(cat logs/alims_main.pid)
         if kill -0 $MAIN_PID 2>/dev/null; then
             print_status "Stopping main system (PID: $MAIN_PID)..."
             kill $MAIN_PID 2>/dev/null || true
@@ -75,11 +75,11 @@ cleanup_processes() {
                 kill -9 $MAIN_PID 2>/dev/null || true
             fi
         fi
-        rm -f logs/celflow_main.pid
+        rm -f logs/alims_main.pid
     fi
     
-    if [ -f "logs/celflow_tray.pid" ]; then
-        TRAY_PID=$(cat logs/celflow_tray.pid)
+    if [ -f "logs/alims_tray.pid" ]; then
+        TRAY_PID=$(cat logs/alims_tray.pid)
         if kill -0 $TRAY_PID 2>/dev/null; then
             print_status "Stopping system tray (PID: $TRAY_PID)..."
             kill $TRAY_PID 2>/dev/null || true
@@ -89,7 +89,7 @@ cleanup_processes() {
                 kill -9 $TRAY_PID 2>/dev/null || true
             fi
         fi
-        rm -f logs/celflow_tray.pid
+        rm -f logs/alims_tray.pid
     fi
     
     if [ -f "logs/tauri_tray.pid" ]; then
@@ -106,35 +106,35 @@ cleanup_processes() {
         rm -f logs/tauri_tray.pid
     fi
     
-    # Kill any remaining CelFlow processes by name patterns (excluding this script)
-    print_status "Killing remaining CelFlow processes..."
-    ps aux | grep -E "(celflow|CelFlow|run_celflow|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray|test_chat)" | grep -v grep | grep -v "launch_celflow.sh" | awk '{print $2}' | xargs -r kill 2>/dev/null || true
+    # Kill any remaining ALims processes by name patterns (excluding this script)
+    print_status "Killing remaining ALims processes..."
+    ps aux | grep -E "(alims|ALims|run_alims|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray|test_chat)" | grep -v grep | grep -v "launch_alims.sh" | awk '{print $2}' | xargs -r kill 2>/dev/null || true
     sleep 1
     
     # Force kill any stubborn processes
-    ps aux | grep -E "(celflow|CelFlow|run_celflow|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray|test_chat)" | grep -v grep | grep -v "launch_celflow.sh" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
+    ps aux | grep -E "(alims|ALims|run_alims|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray|test_chat)" | grep -v grep | grep -v "launch_alims.sh" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
     sleep 1
     
-    # Kill any Python processes running CelFlow scripts (excluding this script)
-    ps aux | grep -E "(python|Python).*(celflow|run_celflow|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray)" | grep -v grep | grep -v "launch_celflow.sh" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
+    # Kill any Python processes running ALims scripts (excluding this script)
+    ps aux | grep -E "(python|Python).*(alims|run_alims|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray)" | grep -v grep | grep -v "launch_alims.sh" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
     
     # Additional cleanup for any Python processes in the project directory (excluding this script)
     CURRENT_DIR=$(pwd)
-    ps aux | grep "$CURRENT_DIR" | grep -v grep | grep -v "launch_celflow.sh" | grep -E "(python|Python)" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
+    ps aux | grep "$CURRENT_DIR" | grep -v grep | grep -v "launch_alims.sh" | grep -E "(python|Python)" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
     
     sleep 2
     
-    # Verify cleanup - show any remaining CelFlow processes (excluding this script)
-    REMAINING=$(ps aux | grep -E "(celflow|CelFlow|run_celflow|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray)" | grep -v grep | grep -v "launch_celflow.sh" | wc -l)
+    # Verify cleanup - show any remaining ALims processes (excluding this script)
+    REMAINING=$(ps aux | grep -E "(alims|ALims|run_alims|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray)" | grep -v grep | grep -v "launch_alims.sh" | wc -l)
     if [ "$REMAINING" -gt 0 ]; then
-        print_warning "Found $REMAINING remaining CelFlow processes:"
-        ps aux | grep -E "(celflow|CelFlow|run_celflow|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray)" | grep -v grep | grep -v "launch_celflow.sh" | awk '{print "  PID " $2 ": " $11 " " $12 " " $13}'
+        print_warning "Found $REMAINING remaining ALims processes:"
+        ps aux | grep -E "(alims|ALims|run_alims|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray)" | grep -v grep | grep -v "launch_alims.sh" | awk '{print "  PID " $2 ": " $11 " " $12 " " $13}'
         print_status "Force killing remaining processes..."
-        ps aux | grep -E "(celflow|CelFlow|run_celflow|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray)" | grep -v grep | grep -v "launch_celflow.sh" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
+        ps aux | grep -E "(alims|ALims|run_alims|launch_tray|launch_tauri_tray|macos_tray|tauri_integrated_tray)" | grep -v grep | grep -v "launch_alims.sh" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
         sleep 1
     fi
     
-    print_success "Cleanup complete - all CelFlow processes terminated"
+    print_success "Cleanup complete - all ALims processes terminated"
 }
 
 # Function to check system status
@@ -162,13 +162,13 @@ check_system() {
 
 # Function to start the main system
 start_main_system() {
-    print_status "Starting main CelFlow system..."
+    print_status "Starting main ALims system..."
     
     # Create log directory
     mkdir -p logs
     
     # Start main system in background with logging using virtual environment
-    nohup bash -c "source environments/celflow_env/bin/activate && PYTHONPATH=$(pwd):$(pwd)/backend python3 backend/scripts/run_celflow_live.py" > logs/celflow_main.log 2>&1 &
+    nohup bash -c "source environments/alims_env/bin/activate && PYTHONPATH=$(pwd):$(pwd)/backend python3 backend/scripts/run_alims_live.py" > logs/alims_main.log 2>&1 &
     MAIN_PID=$!
     
     print_success "Main system started (PID: $MAIN_PID)"
@@ -179,7 +179,7 @@ start_main_system() {
     # Check if it's still running
     if kill -0 $MAIN_PID 2>/dev/null; then
         print_success "Main system running successfully"
-        echo $MAIN_PID > logs/celflow_main.pid
+        echo $MAIN_PID > logs/alims_main.pid
     else
         print_error "Main system failed to start"
         return 1
@@ -191,11 +191,11 @@ start_tray() {
     print_status "Starting system tray..."
     
     # Start tray in background using virtual environment with correct Python path
-    nohup bash -c "source environments/celflow_env/bin/activate && PYTHONPATH=$(pwd):$(pwd)/backend python3 backend/scripts/launch_tray.py" > logs/celflow_tray.log 2>&1 &
+    nohup bash -c "source environments/alims_env/bin/activate && PYTHONPATH=$(pwd):$(pwd)/backend python3 backend/scripts/launch_tray.py" > logs/alims_tray.log 2>&1 &
     TRAY_PID=$!
     
     print_success "System tray started (PID: $TRAY_PID)"
-    echo $TRAY_PID > logs/celflow_tray.pid
+    echo $TRAY_PID > logs/alims_tray.pid
     
     # Wait a moment
     sleep 2
@@ -204,7 +204,7 @@ start_tray() {
     if kill -0 $TRAY_PID 2>/dev/null; then
         print_success "System tray running - check your menu bar!"
     else
-        print_warning "System tray may have failed (check logs/celflow_tray.log)"
+        print_warning "System tray may have failed (check logs/alims_tray.log)"
     fi
 }
 
@@ -258,7 +258,7 @@ start_tauri_tray() {
     fi
     
     # Start Tauri tray in background using virtual environment with correct Python path
-    nohup bash -c "source environments/celflow_env/bin/activate && PYTHONPATH=$(pwd) python3 backend/scripts/launch_tauri_tray.py" > logs/tauri_tray.log 2>&1 &
+    nohup bash -c "source environments/alims_env/bin/activate && PYTHONPATH=$(pwd) python3 backend/scripts/launch_tauri_tray.py" > logs/tauri_tray.log 2>&1 &
     TRAY_PID=$!
     
     print_success "Tauri-integrated tray started (PID: $TRAY_PID)"
@@ -282,8 +282,8 @@ show_status() {
     echo ""
     
     # Check main system
-    if [ -f "logs/celflow_main.pid" ]; then
-        MAIN_PID=$(cat logs/celflow_main.pid)
+    if [ -f "logs/alims_main.pid" ]; then
+        MAIN_PID=$(cat logs/alims_main.pid)
         if kill -0 $MAIN_PID 2>/dev/null; then
             print_success "Main System: Running (PID: $MAIN_PID)"
         else
@@ -294,8 +294,8 @@ show_status() {
     fi
     
     # Check tray
-    if [ -f "logs/celflow_tray.pid" ]; then
-        TRAY_PID=$(cat logs/celflow_tray.pid)
+    if [ -f "logs/alims_tray.pid" ]; then
+        TRAY_PID=$(cat logs/alims_tray.pid)
         if kill -0 $TRAY_PID 2>/dev/null; then
             print_success "System Tray: Running (PID: $TRAY_PID)"
         else
@@ -326,16 +326,16 @@ monitor_logs() {
     echo ""
     
     # Show recent logs
-    if [ -f "logs/celflow_main.log" ]; then
+    if [ -f "logs/alims_main.log" ]; then
         echo -e "${CYAN}=== Recent Main System Logs ===${NC}"
-        tail -n 10 logs/celflow_main.log
+        tail -n 10 logs/alims_main.log
         echo ""
     fi
     
     # Follow logs
-    if [ -f "logs/celflow_main.log" ]; then
+    if [ -f "logs/alims_main.log" ]; then
         print_status "Following main system logs..."
-        tail -f logs/celflow_main.log
+        tail -f logs/alims_main.log
     else
         print_error "No logs found"
     fi
@@ -346,13 +346,13 @@ restart_tray() {
     print_status "Restarting system tray..."
     
     # Stop tray if running
-    if [ -f "logs/celflow_tray.pid" ]; then
-        TRAY_PID=$(cat logs/celflow_tray.pid)
+    if [ -f "logs/alims_tray.pid" ]; then
+        TRAY_PID=$(cat logs/alims_tray.pid)
         if kill -0 $TRAY_PID 2>/dev/null; then
             kill $TRAY_PID
             print_success "System tray stopped"
         fi
-        rm -f logs/celflow_tray.pid
+        rm -f logs/alims_tray.pid
     fi
     
     # Kill any remaining tray processes
@@ -365,12 +365,12 @@ restart_tray() {
 
 # Function to stop all processes
 stop_system() {
-    print_status "Stopping CelFlow system..."
+    print_status "Stopping ALims system..."
     
     # Use the comprehensive cleanup function
     cleanup_processes
     
-    print_success "CelFlow system stopped"
+    print_success "ALims system stopped"
 }
 
 # Main script logic
@@ -387,10 +387,10 @@ main() {
             start_tauri_tray
             show_status
             echo ""
-            print_success "CelFlow system launched successfully!"
-            print_status "Use './launch_celflow.sh status' to check status"
-            print_status "Use './launch_celflow.sh logs' to monitor logs"
-            print_status "Use './launch_celflow.sh stop' to stop the system"
+            print_success "ALims system launched successfully!"
+            print_status "Use './launch_alims.sh status' to check status"
+            print_status "Use './launch_alims.sh logs' to monitor logs"
+            print_status "Use './launch_alims.sh stop' to stop the system"
             ;;
         "stop")
             stop_system
@@ -419,9 +419,9 @@ main() {
             start_tauri_tray
             show_status
             echo ""
-            print_success "CelFlow system with Tauri-integrated tray launched!"
+            print_success "ALims system with Tauri-integrated tray launched!"
             print_status "🖥️ Click the tray icon and select 'Launch Desktop App'"
-            print_status "Use './launch_celflow.sh status' to check status"
+            print_status "Use './launch_alims.sh status' to check status"
             ;;
         "desktop")
             print_status "Launching desktop app directly..."
@@ -435,8 +435,8 @@ main() {
             echo "Usage: $0 {start|stop|status|logs|restart|tray|tauri|desktop}"
             echo ""
             echo "Commands:"
-            echo "  start   - Start the complete CelFlow system"
-            echo "  stop    - Stop all CelFlow processes"
+            echo "  start   - Start the complete ALims system"
+            echo "  stop    - Stop all ALims processes"
             echo "  status  - Show system status"
             echo "  logs    - Monitor system logs"
             echo "  restart - Restart the system"

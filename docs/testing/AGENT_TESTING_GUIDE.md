@@ -1,10 +1,10 @@
-# CelFlow AI Agents Testing Guide
+# ALims AI Agents Testing Guide
 
-This guide shows you how to test the 5 AI agents that exist in CelFlow and verify their functionality.
+This guide shows you how to test the 5 AI agents that exist in ALims and verify their functionality.
 
 ## 🤖 The 5 AI Agents
 
-Based on code analysis, CelFlow has these **5 actual AI agents**:
+Based on code analysis, ALims has these **5 actual AI agents**:
 
 1. **UserInterfaceAgent** - Natural language processing and user interactions
 2. **AgentOrchestrator** - Complex task coordination and delegation  
@@ -104,8 +104,8 @@ Then ask questions like:
 
 1. **Prerequisites**:
    ```bash
-   # Make sure CelFlow system is running
-   ./launch_celflow.sh start
+   # Make sure ALims system is running
+   ./launch_alims.sh start
    
    # Ensure Ollama is running
    ollama serve
@@ -120,7 +120,7 @@ Then ask questions like:
    ```
    🧪 RUNNING COMPREHENSIVE AGENT TEST SUITE
    ============================================================
-   🚀 Setting up CelFlow Agent Testing Environment
+   🚀 Setting up ALims Agent Testing Environment
    ✅ Ollama client ready
    ✅ Central AI Brain initialized
       - Agents available: 5
@@ -164,14 +164,14 @@ Then ask questions like:
 
 2. **"Agent not available"**
    ```bash
-   # Restart CelFlow system
-   ./launch_celflow.sh restart
+   # Restart ALims system
+   ./launch_alims.sh restart
    ```
 
 3. **Import errors**
    ```bash
    # Activate virtual environment
-   source celflow_env/bin/activate
+   source alims_env/bin/activate
    
    # Install dependencies
    pip install -r requirements.txt
@@ -268,12 +268,12 @@ for i in {1..5}; do python test_all_agents.py --agent ui & done; wait
 python -m memory_profiler test_all_agents.py
 ```
 
-### Integration with CelFlow System
+### Integration with ALims System
 ```bash
-# Test while CelFlow is running
-./launch_celflow.sh start
+# Test while ALims is running
+./launch_alims.sh start
 python test_all_agents.py
-./launch_celflow.sh stop
+./launch_alims.sh stop
 ```
 
 This comprehensive testing approach ensures all 5 AI agents are working correctly and helps identify any issues with their functionality or integration. 

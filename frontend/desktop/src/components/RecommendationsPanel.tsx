@@ -1,4 +1,4 @@
-import { Recommendation } from "../types/celflow";
+import { Recommendation } from "../types/alims";
 import { AlertTriangle, CheckCircle, Info, Zap, ArrowRight, Clock } from "lucide-react";
 
 interface RecommendationsPanelProps {

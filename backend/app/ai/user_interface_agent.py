@@ -1,5 +1,5 @@
 """
-CelFlow Central AI Brain - User Interface Agent
+ALims Central AI Brain - User Interface Agent
 Handles all natural language user interactions with intelligence and personality
 """
 
@@ -42,9 +42,9 @@ class UserInterfaceAgent:
 
     def _get_fallback_prompt(self) -> str:
         """Fallback prompt template"""
-        return """You are the User Interface Agent of CelFlow, a self-creating AI operating system.
+        return """You are the User Interface Agent of ALims, a self-creating AI operating system.
 
-Your role is to be helpful, friendly, and knowledgeable about CelFlow's capabilities.
+Your role is to be helpful, friendly, and knowledgeable about ALims's capabilities.
 
 Current context:
 - System status: {system_status}
@@ -204,7 +204,7 @@ Respond helpfully and naturally to the user's message."""
 
         except Exception as e:
             logger.error(f"Error generating proactive suggestions: {e}")
-            return ["I'm here to help! Feel free to ask me anything about CelFlow."]
+            return ["I'm here to help! Feel free to ask me anything about ALims."]
 
     async def explain_system_action(self, action: Dict[str, Any]) -> str:
         """Explain what the system is doing in user-friendly terms"""
@@ -444,7 +444,7 @@ Respond helpfully and naturally to the user's message."""
         context = context or {}
 
         return f"""
-        You are generating proactive suggestions for a CelFlow user.
+        You are generating proactive suggestions for a ALims user.
         
         User patterns: {self.conversation_patterns}
         User preferences: {self.user_preferences}
@@ -452,7 +452,7 @@ Respond helpfully and naturally to the user's message."""
         
         Generate 3-5 helpful, specific suggestions that would be valuable to this user.
         Focus on:
-        - CelFlow capabilities they haven't explored
+        - ALims capabilities they haven't explored
         - Productivity improvements
         - System optimizations
         - Learning opportunities
@@ -480,12 +480,12 @@ Respond helpfully and naturally to the user's message."""
             return (
                 suggestions[:5]
                 if suggestions
-                else ["Feel free to ask me anything about CelFlow!"]
+                else ["Feel free to ask me anything about ALims!"]
             )
 
         except Exception as e:
             logger.error(f"Error parsing suggestions: {e}")
-            return ["I'm here to help! Ask me about CelFlow's capabilities."]
+            return ["I'm here to help! Ask me about ALims's capabilities."]
 
     def get_agent_status(self) -> Dict[str, Any]:
         """Get current status of the User Interface Agent"""

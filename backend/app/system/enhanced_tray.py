@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Enhanced Tray Interface
+ALims Enhanced Tray Interface
 Real-time visualization of meta-learning, embryo development, and agent status.
 """
 
@@ -69,9 +69,9 @@ class MetaLearningMonitor:
             logger.error(f"Error updating stats: {e}")
 
 
-class EnhancedCelFlowTray(rumps.App):
+class EnhancedAlimsTray(rumps.App):
     """
-    Enhanced CelFlow System Tray with Advanced AI Integration
+    Enhanced ALims System Tray with Advanced AI Integration
     
     Features:
     - Real-time system monitoring
@@ -82,7 +82,7 @@ class EnhancedCelFlowTray(rumps.App):
     """
 
     def __init__(self):
-        super().__init__("🧬", title="CelFlow Meta-Learning")
+        super().__init__("🧬", title="ALims Meta-Learning")
 
         # Initialize monitor
         self.monitor = MetaLearningMonitor()
@@ -200,7 +200,7 @@ class EnhancedCelFlowTray(rumps.App):
         """Show data dashboard"""
         stats = self.monitor.stats
 
-        dashboard = f"""📊 CelFlow Data Dashboard
+        dashboard = f"""📊 ALims Data Dashboard
         
 📈 Today's Activity:
 • Events Captured: {stats['events_today']:,}
@@ -374,7 +374,7 @@ Overfitting Risk: Low ✅
     def show_settings(self, _):
         """Show settings"""
 
-        settings_info = """⚙️ CelFlow Settings
+        settings_info = """⚙️ ALims Settings
 
 🔧 Meta-Learning:
 • Training Intensity: High
@@ -408,12 +408,12 @@ Overfitting Risk: Low ✅
     def show_about(self, _):
         """Show about information"""
 
-        about_info = """❓ About CelFlow
+        about_info = """❓ About ALims
 
-🧬 CelFlow Meta-Learning System
+🧬 ALims Meta-Learning System
 Version 2.0 - True AI Agents
 
-🎯 What CelFlow Does:
+🎯 What ALims Does:
 • Monitors your digital behavior
 • Discovers meaningful patterns
 • Grows specialized AI embryos
@@ -436,9 +436,9 @@ trained specifically on your behavior patterns.
 Watch your digital assistant grow,
 learn, and evolve alongside you!
 
-Made with ❤️ by the CelFlow Team"""
+Made with ❤️ by the ALims Team"""
 
-        rumps.alert("About CelFlow", about_info)
+        rumps.alert("About ALims", about_info)
 
 
 def main():
@@ -451,7 +451,7 @@ def main():
     )
 
     # Create and run enhanced tray app
-    app = EnhancedCelFlowTray()
+    app = EnhancedAlimsTray()
     app.run()
 
 

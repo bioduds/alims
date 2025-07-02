@@ -1,7 +1,7 @@
-# CelFlow File Structure Reorganization - COMPLETE
+# ALims File Structure Reorganization - COMPLETE
 
 ## Overview
-Successfully completed a comprehensive reorganization of the CelFlow project structure to improve maintainability, reduce clutter, and follow modern Python packaging standards.
+Successfully completed a comprehensive reorganization of the ALims project structure to improve maintainability, reduce clutter, and follow modern Python packaging standards.
 
 ## What Was Accomplished
 
@@ -21,7 +21,7 @@ Successfully completed a comprehensive reorganization of the CelFlow project str
 
 ### ✅ Environment & Log Cleanup (Phase 3)
 - **Created** `environments/` directory
-- **Moved** `celflow_env/` → `environments/celflow_env/`
+- **Moved** `alims_env/` → `environments/alims_env/`
 - **Created** `logs/` directory with proper `.gitignore`
 - **Moved** all log files → `logs/`
 
@@ -33,11 +33,11 @@ Successfully completed a comprehensive reorganization of the CelFlow project str
 ## New Directory Structure
 
 ```
-celflow/
+alims/
 ├── README.md                          # Main project readme
 ├── .gitignore                         # Git ignore rules
 ├── pyproject.toml                     # Modern Python project config ✨
-├── launch_celflow.sh                  # Wrapper script for easy access ✨
+├── launch_alims.sh                  # Wrapper script for easy access ✨
 │
 ├── backend/                           # Python backend ✨
 │   ├── app/                          # Main application code
@@ -51,12 +51,12 @@ celflow/
 │   │   └── main.py                   # Main entry point
 │   │
 │   ├── scripts/                      # Python scripts ✨
-│   │   ├── launch_celflow.sh         # Main launcher
+│   │   ├── launch_alims.sh         # Main launcher
 │   │   ├── launch_tray.py            # Tray launcher
 │   │   ├── launch_tauri_tray.py      # Tauri tray launcher
-│   │   ├── run_celflow_live.py       # Live system runner
-│   │   ├── run_visual_celflow.py     # Visual system runner
-│   │   └── celflow.py                # Core script
+│   │   ├── run_alims_live.py       # Live system runner
+│   │   ├── run_visual_alims.py     # Visual system runner
+│   │   └── alims.py                # Core script
 │   │
 │   ├── analysis/                     # Data analysis tools ✨
 │   │   ├── analyze_event_data.py     # Event data analysis
@@ -96,7 +96,7 @@ celflow/
 │   ├── context/
 │   ├── patterns/
 │   ├── training/
-│   └── celflow_events.db
+│   └── alims_events.db
 │
 ├── docs/                             # Documentation (already organized)
 │   ├── architecture/
@@ -115,24 +115,24 @@ celflow/
 │   └── embryos/
 │
 ├── tools/                            # Utilities and tools
-│   ├── celflow_dashboard.py
-│   ├── celflow_events.py
+│   ├── alims_dashboard.py
+│   ├── alims_events.py
 │   └── test_clustering.py
 │
 └── environments/                     # Environment management ✨
-    └── celflow_env/                  # Virtual environment
+    └── alims_env/                  # Virtual environment
 ```
 
 ## Files Moved
 
 ### Backend Scripts (6 files)
-- `launch_celflow.sh` → `backend/scripts/launch_celflow.sh`
+- `launch_alims.sh` → `backend/scripts/launch_alims.sh`
 - `launch_tray.py` → `backend/scripts/launch_tray.py`
 - `launch_tauri_tray.py` → `backend/scripts/launch_tauri_tray.py`
-- `run_celflow_live.py` → `backend/scripts/run_celflow_live.py`
-- `run_visual_celflow.py` → `backend/scripts/run_visual_celflow.py`
-- `celflow.py` → `backend/scripts/celflow.py`
-- `celflow_tray.py` → `backend/scripts/celflow_tray.py`
+- `run_alims_live.py` → `backend/scripts/run_alims_live.py`
+- `run_visual_alims.py` → `backend/scripts/run_visual_alims.py`
+- `alims.py` → `backend/scripts/alims.py`
+- `alims_tray.py` → `backend/scripts/alims_tray.py`
 
 ### Analysis Tools (4 files)
 - `analyze_event_data.py` → `backend/analysis/analyze_event_data.py`
@@ -153,7 +153,7 @@ celflow/
 
 ### Frontend Files (8 files)
 - `src/` → `frontend/desktop/src/`
-- `celflow-desktop/src-tauri/` → `frontend/desktop/src-tauri/`
+- `alims-desktop/src-tauri/` → `frontend/desktop/src-tauri/`
 - `package.json` → `frontend/desktop/package.json`
 - `package-lock.json` → `frontend/desktop/package-lock.json`
 - `tsconfig.json` → `frontend/desktop/tsconfig.json`
@@ -163,7 +163,7 @@ celflow/
 - `index.html` → `frontend/desktop/index.html`
 
 ### Environment & Logs
-- `celflow_env/` → `environments/celflow_env/`
+- `alims_env/` → `environments/alims_env/`
 - `*.log` files → `logs/`
 
 ## Key Improvements
@@ -188,7 +188,7 @@ celflow/
 - **Pytest config**: Proper test discovery and coverage
 
 ### 🚀 Improved Developer Experience
-- **Easy launch**: `./launch_celflow.sh` from root
+- **Easy launch**: `./launch_alims.sh` from root
 - **Clear paths**: Logical file organization
 - **Better navigation**: Find files by purpose
 
@@ -197,12 +197,12 @@ celflow/
 ### Running the System
 ```bash
 # From project root (same as before)
-./launch_celflow.sh start
+./launch_alims.sh start
 
 # All other commands work the same
-./launch_celflow.sh status
-./launch_celflow.sh logs
-./launch_celflow.sh stop
+./launch_alims.sh status
+./launch_alims.sh logs
+./launch_alims.sh stop
 ```
 
 ### Development

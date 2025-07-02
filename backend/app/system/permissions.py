@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Permission Manager
+ALims Permission Manager
 
 Handles macOS permission requests for system monitoring.
 """
@@ -166,15 +166,15 @@ async def request_permissions(missing_permissions: List[str]) -> bool:
     try:
         # Show permission request dialog
         permission_messages = {
-            "accessibility": "CelFlow needs Accessibility permission to monitor system events.",
-            "full_disk_access": "CelFlow needs Full Disk Access to monitor file operations.",
-            "screen_recording": "CelFlow needs Screen Recording permission for advanced monitoring.",
-            "automation": "CelFlow needs Automation permission to interact with applications.",
+            "accessibility": "ALims needs Accessibility permission to monitor system events.",
+            "full_disk_access": "ALims needs Full Disk Access to monitor file operations.",
+            "screen_recording": "ALims needs Screen Recording permission for advanced monitoring.",
+            "automation": "ALims needs Automation permission to interact with applications.",
         }
 
         for permission in missing_permissions:
             message = permission_messages.get(
-                permission, f"CelFlow needs {permission} permission."
+                permission, f"ALims needs {permission} permission."
             )
 
             # Show dialog using AppleScript
@@ -279,30 +279,30 @@ To grant Accessibility permission:
 1. Open System Preferences > Security & Privacy > Privacy
 2. Click on "Accessibility" in the left sidebar
 3. Click the lock icon and enter your password
-4. Find CelFlow in the list and check the box next to it
-5. If CelFlow is not in the list, click the "+" button and add it
+4. Find ALims in the list and check the box next to it
+5. If ALims is not in the list, click the "+" button and add it
         """.strip(),
         "full_disk_access": """
 To grant Full Disk Access permission:
 1. Open System Preferences > Security & Privacy > Privacy
 2. Click on "Full Disk Access" in the left sidebar
 3. Click the lock icon and enter your password
-4. Find CelFlow in the list and check the box next to it
-5. If CelFlow is not in the list, click the "+" button and add it
+4. Find ALims in the list and check the box next to it
+5. If ALims is not in the list, click the "+" button and add it
         """.strip(),
         "screen_recording": """
 To grant Screen Recording permission:
 1. Open System Preferences > Security & Privacy > Privacy
 2. Click on "Screen Recording" in the left sidebar
 3. Click the lock icon and enter your password
-4. Find CelFlow in the list and check the box next to it
-5. If CelFlow is not in the list, click the "+" button and add it
+4. Find ALims in the list and check the box next to it
+5. If ALims is not in the list, click the "+" button and add it
         """.strip(),
         "automation": """
 To grant Automation permission:
 1. Open System Preferences > Security & Privacy > Privacy
 2. Click on "Automation" in the left sidebar
-3. Find CelFlow in the list and expand it
-4. Check the boxes for applications you want CelFlow to control
+3. Find ALims in the list and expand it
+4. Check the boxes for applications you want ALims to control
         """.strip(),
     }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Tauri-Integrated System Tray
+ALims Tauri-Integrated System Tray
 
 Enhanced system tray that launches the beautiful Tauri desktop application
 and provides comprehensive system management capabilities.
@@ -320,20 +320,20 @@ class TauriIntegratedTray(rumps.App):
         try:
             if self.desktop_launcher.launch_desktop_app():
             rumps.notification(
-                    title="CelFlow Desktop",
+                    title="ALims Desktop",
                     subtitle="Desktop App Launched",
-                    message="The CelFlow desktop application is starting..."
+                    message="The ALims desktop application is starting..."
                 )
             else:
                 rumps.notification(
-                    title="CelFlow Desktop",
+                    title="ALims Desktop",
                     subtitle="Launch Failed",
                     message="Failed to launch desktop app. Check requirements."
                 )
         except Exception as e:
             logger.error(f"Error launching desktop app: {e}")
             rumps.notification(
-                title="CelFlow Desktop",
+                title="ALims Desktop",
                 subtitle="Error",
                 message=f"Error launching desktop app: {e}"
             )
@@ -344,7 +344,7 @@ class TauriIntegratedTray(rumps.App):
         try:
         stats = self.system_monitor.stats
             window = rumps.Window(
-                title="CelFlow System Status",
+                title="ALims System Status",
                 message=(
                     f"Events Today: {stats['events_today']}\n"
                     f"Total Events: {stats['total_events']}\n"
@@ -365,7 +365,7 @@ class TauriIntegratedTray(rumps.App):
         try:
             if not self.agent_manager:
                 rumps.notification(
-                    title="CelFlow",
+                    title="ALims",
                     subtitle="Agent Status",
                     message="Agent manager not initialized"
                 )
@@ -386,7 +386,7 @@ class TauriIntegratedTray(rumps.App):
                     )
             
             window = rumps.Window(
-                title="CelFlow Agent Status",
+                title="ALims Agent Status",
                 message=message,
                 dimensions=(400, 300)
                 )
@@ -400,7 +400,7 @@ class TauriIntegratedTray(rumps.App):
         try:
             if not self.agent_manager:
                 rumps.notification(
-                    title="CelFlow",
+                    title="ALims",
                     subtitle="Embryo Pool",
                     message="Agent manager not initialized"
                 )
@@ -417,7 +417,7 @@ class TauriIntegratedTray(rumps.App):
                 )
             
             window = rumps.Window(
-                title="CelFlow Embryo Pool",
+                title="ALims Embryo Pool",
                 message=message,
                 dimensions=(300, 200)
             )
@@ -440,7 +440,7 @@ class TauriIntegratedTray(rumps.App):
             )
             
             window = rumps.Window(
-                title="CelFlow Performance",
+                title="ALims Performance",
                 message=message,
                 dimensions=(300, 200)
             )
@@ -454,7 +454,7 @@ class TauriIntegratedTray(rumps.App):
             try:
             if not self.agent_manager:
                 rumps.notification(
-                    title="CelFlow",
+                    title="ALims",
                     subtitle="Agent Birth",
                     message="Agent manager not initialized"
                 )
@@ -465,13 +465,13 @@ class TauriIntegratedTray(rumps.App):
             
             if success:
                 rumps.notification(
-                    title="CelFlow",
+                    title="ALims",
                     subtitle="Agent Birth",
                     message="New agent successfully birthed!"
                 )
             else:
                 rumps.notification(
-                    title="CelFlow",
+                    title="ALims",
                     subtitle="Agent Birth Failed",
                     message="Failed to birth new agent"
                 )
@@ -483,7 +483,7 @@ class TauriIntegratedTray(rumps.App):
         """Show settings window"""
         try:
             message = (
-                "CelFlow Settings\n\n"
+                "ALims Settings\n\n"
                 "Current Configuration:\n"
                 f"Max Agents: {self.config.get('max_agents', 5)}\n"
                 f"Birth Rate: {self.config.get('birth_rate', 0.1):.2f}\n"
@@ -492,7 +492,7 @@ class TauriIntegratedTray(rumps.App):
             )
             
             window = rumps.Window(
-                title="CelFlow Settings",
+                title="ALims Settings",
                 message=message,
                 dimensions=(300, 200)
             )
@@ -505,7 +505,7 @@ class TauriIntegratedTray(rumps.App):
         """Show about window"""
         try:
             message = (
-                "CelFlow - Self-Creating AI Operating System\n\n"
+                "ALims - Self-Creating AI Operating System\n\n"
                 "Version: 0.1.0\n"
                 "Status: Development\n\n"
                 "A revolutionary AI system that:\n"
@@ -513,11 +513,11 @@ class TauriIntegratedTray(rumps.App):
                 "• Evolves through continuous learning\n"
                 "• Adapts to your workflow patterns\n"
                 "• Operates with complete privacy\n\n"
-                "© 2024 CelFlow"
+                "© 2024 ALims"
             )
             
             window = rumps.Window(
-            title="About CelFlow",
+            title="About ALims",
                 message=message,
                 dimensions=(400, 300)
         )
@@ -527,12 +527,12 @@ class TauriIntegratedTray(rumps.App):
     
     @rumps.clicked("🔄 Restart System")
     def restart_system(self, _):
-        """Restart the entire CelFlow system"""
+        """Restart the entire ALims system"""
         try:
             # Confirm restart
             window = rumps.Window(
-                title="Restart CelFlow?",
-                message="This will restart all CelFlow components.\nAre you sure?",
+                title="Restart ALims?",
+                message="This will restart all ALims components.\nAre you sure?",
                 dimensions=(300, 100),
             ok="Restart",
             cancel="Cancel"
@@ -545,13 +545,13 @@ class TauriIntegratedTray(rumps.App):
                     self.desktop_launcher.stop_desktop_app()
                 
             # Use the launch script to restart
-            script_path = Path("launch_celflow.sh")
+            script_path = Path("launch_alims.sh")
             if script_path.exists():
-                subprocess.run(["./launch_celflow.sh", "restart"])
+                subprocess.run(["./launch_alims.sh", "restart"])
             else:
                 logger.error("Launch script not found")
                 rumps.notification(
-                    title="CelFlow",
+                    title="ALims",
                     subtitle="Restart Failed",
                     message="Launch script not found"
                 )
@@ -560,12 +560,12 @@ class TauriIntegratedTray(rumps.App):
     
     @rumps.clicked("🛑 Stop System")
     def stop_system(self, _):
-        """Stop the CelFlow system"""
+        """Stop the ALims system"""
         try:
             # Confirm stop
             window = rumps.Window(
-                title="Stop CelFlow?",
-                message="This will stop all CelFlow components.\nAre you sure?",
+                title="Stop ALims?",
+                message="This will stop all ALims components.\nAre you sure?",
                 dimensions=(300, 100),
             ok="Stop",
             cancel="Cancel"
@@ -578,13 +578,13 @@ class TauriIntegratedTray(rumps.App):
                     self.desktop_launcher.stop_desktop_app()
                 
             # Use the launch script to stop
-            script_path = Path("launch_celflow.sh")
+            script_path = Path("launch_alims.sh")
             if script_path.exists():
-                subprocess.run(["./launch_celflow.sh", "stop"])
+                subprocess.run(["./launch_alims.sh", "stop"])
             else:
                 logger.error("Launch script not found")
                 rumps.notification(
-                    title="CelFlow",
+                    title="ALims",
                     subtitle="Stop Failed",
                     message="Launch script not found"
                 )

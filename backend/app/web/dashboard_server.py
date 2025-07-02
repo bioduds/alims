@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CelFlow Dashboard Web Server
+ALims Dashboard Web Server
 Serves the meta-learning dashboard with real-time updates via WebSocket.
 """
 
@@ -292,7 +292,7 @@ class DashboardDataManager:
 
 
 class DashboardServer:
-    """Web server for the CelFlow dashboard"""
+    """Web server for the ALims dashboard"""
 
     def __init__(self, host="localhost", port=8080):
         self.host = host
@@ -433,7 +433,7 @@ class DashboardServer:
         await site.start()
 
         logger.info(f"Dashboard server started at http://{self.host}:{self.port}")
-        print(f"🌐 CelFlow Dashboard: http://{self.host}:{self.port}")
+        print(f"🌐 ALims Dashboard: http://{self.host}:{self.port}")
 
     def run(self):
         """Run the server"""

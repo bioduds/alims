@@ -1,5 +1,5 @@
 """
-System Controller for CelFlow Central AI Brain
+System Controller for ALims Central AI Brain
 
 This module provides intelligent command translation and system action execution,
 serving as the bridge between user intentions and system capabilities.

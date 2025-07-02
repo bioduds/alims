@@ -1,7 +1,10 @@
-# CelFlow .gitignore
+# ALIMS .gitignore
+
+# Virtual environment
+alims_env/lFlow .gitignore
 
 # Virtual Environment
-celflow_env/
+alims_env/
 venv/
 env/
 .venv/
@@ -98,7 +101,7 @@ Temporary Items
 # Logs
 *.log
 logs/
-celflow.log
+alims.log
 
 # Data & Models (sensitive/large files)
 data/patterns/*.dat
@@ -284,7 +287,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# CelFlow specific
+# ALIMS specific
 logs/
 data/events.db*
 data/patterns/*.json
@@ -320,7 +323,7 @@ env/
 ENV/
 env.bak/
 venv.bak/
-celflow_env/
+alims_env/
 
 # IDE
 .vscode/

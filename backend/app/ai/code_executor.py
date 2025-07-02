@@ -495,7 +495,7 @@ def handler(event, context):
         return hash_value % bucket_size
     
     # Generate test results
-    test_data = ['hello', 'world', 'celflow', 'ai', 'hash', 'function', 'test', 'data'][:test_count]
+    test_data = ['hello', 'world', 'alims', 'ai', 'hash', 'function', 'test', 'data'][:test_count]
     results = []
     
     print(f"Hash Function using first {num_primes} prime numbers")
