@@ -1,5 +1,22 @@
 # ALIMS .gitignore
 
+# Temporary files and runtime artifacts
+temp/
+*.pid
+*.log
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.rtf
+
+# Build and cache directories
+__pycache__/
+.mypy_cache/
+.vite/
+.cursor/
+
 # Virtual environment
 alims_env/lFlow .gitignore
 

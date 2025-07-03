@@ -30,7 +30,7 @@ export const RealTimeDataStream: React.FC<RealTimeDataStreamProps> = ({
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch system data from ALims backend
+  // Fetch system data from ALIMS backend
   const fetchSystemData = useCallback(async () => {
     try {
       const response = await fetch('http://127.0.0.1:8000/system-stats');
@@ -78,7 +78,7 @@ export const RealTimeDataStream: React.FC<RealTimeDataStreamProps> = ({
       case 'system_overview':
         return {
           type: 'system_dashboard' as const,
-          title: 'ALims System Overview',
+          title: 'ALIMS Laboratory System Overview',
           data: currentData,
           realTimeData: true,
           updateInterval
@@ -222,10 +222,10 @@ export const RealTimeDataStream: React.FC<RealTimeDataStreamProps> = ({
           <div className="ml-3">
             <h3 className="text-sm font-medium text-red-800">Data Stream Error</h3>
             <p className="mt-1 text-sm text-red-700">
-              Unable to connect to ALims backend: {error}
+              Unable to connect to ALIMS backend: {error}
             </p>
             <p className="mt-1 text-xs text-red-600">
-              Make sure the ALims AI API server is running on http://127.0.0.1:8000
+              Make sure the ALIMS AI API server is running on http://127.0.0.1:8000
             </p>
           </div>
         </div>
