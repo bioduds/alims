@@ -9,11 +9,18 @@ of the embryo pool and agent ecosystem as it develops.
 import asyncio
 import logging
 from typing import Optional, Dict, Any
-from PyQt6.QtWidgets import (QSystemTrayIcon, QMenu, QApplication, 
-                           QAction, QWidget, QVBoxLayout, QLabel, 
-                           QProgressBar, QDialog)
+from PyQt6.QtWidgets import (
+    QSystemTrayIcon,
+    QMenu,
+    QApplication,
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QProgressBar,
+    QDialog,
+)
 from PyQt6.QtCore import QTimer, pyqtSignal, QThread
-from PyQt6.QtGui import QIcon, QPixmap, QFont
+from PyQt6.QtGui import QIcon, QPixmap, QFont, QAction
 
 
 class EmbryoStatusDialog(QDialog):

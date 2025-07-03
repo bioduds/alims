@@ -22,8 +22,8 @@ except ImportError:
     RUMPS_AVAILABLE = False
     print("Warning: rumps not available. Install with: pip install rumps")
 
-from backend.app.core.agent_manager import AgentManager
-from backend.app.ai.central_brain import create_central_brain
+from ..core.agent_manager import AgentManager
+from ..ai.central_brain import create_central_brain
 
 logger = logging.getLogger(__name__)
 

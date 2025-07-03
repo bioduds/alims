@@ -20,7 +20,7 @@ from pathlib import Path
 
 from ..core.agent_manager import AgentManager
 from ..core.embryo_pool import EmbryoPool
-from .macos_tray import create_tray_app, AlimsTrayApp
+from .macos_tray import create_macos_tray, MacOSTray
 from .event_capture import SystemEventCapture
 from .high_performance_capture import HighPerformanceEventCapture
 from .agent_interface import create_agent_interface, AgentChatInterface
@@ -48,7 +48,7 @@ class ALimsSystemIntegration:
         self.agent_manager: Optional[AgentManager] = None
 
         # System integration components
-        self.tray_app: Optional[AlimsTrayApp] = None
+        self.tray_app: Optional[MacOSTray] = None
         self.event_capture: Optional[SystemEventCapture] = None
         self.agent_interface: Optional[AgentChatInterface] = None
 
@@ -239,7 +239,7 @@ class ALimsSystemIntegration:
             self.agent_interface = create_agent_interface(self.agent_manager)
 
             # Initialize tray app
-            self.tray_app = create_tray_app(
+            self.tray_app = create_macos_tray(
                 self.agent_manager, self.config.get("tray_app", {})
             )
 

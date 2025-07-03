@@ -89,7 +89,7 @@ appscript>=1.2.0     # AppleScript from Python
 
 # File System & Data Management
 pathlib              # Built-in Python
-shutil               # Built-in Python
+# shutil               # Built-in Python (commented out - causes pip issues)
 zipfile              # Built-in Python
 
 # Network & Web

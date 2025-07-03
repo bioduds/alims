@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-ALims - Self-Evolving AI Operating System Layer
+ALIMS - Agentic Laboratory Information Management System
 
-The main entry point for the ALims system.
-This module coordinates all system components including:
-- Event capture and monitoring
-- Agent management and evolution
-- Pattern detection and learning
-- System tray integration
-- Privacy-first data handling
+The main entry point for the ALIMS system.
+This module coordinates all laboratory management components including:
+- Sample tracking and lifecycle management  
+- Agentic laboratory workflow automation
+- Intelligent instrument data integration
+- AI-powered quality control and compliance
+- Multi-agent protocol management and validation
 """
 
 import asyncio
@@ -18,39 +18,40 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from backend.app.core.data_stream import DataStreamMonitor
-from backend.app.core.embryo_pool import EmbryoPool
-from backend.app.system.permissions import PermissionManager
-from backend.app.system.tray_icon import AlimsTrayIcon
+from .core.sample_manager import SampleManager
+from .core.laboratory_workflow import LaboratoryWorkflow
+from .system.permissions import PermissionManager
+from .system.lims_interface import LIMSInterface
 
 
-class AlimsApp:
+class ALIMSApp:
     """
-    Main ALIMS application that coordinates all components.
+    Main ALIMS application that coordinates all agentic laboratory management components.
 
     This is the central orchestrator that manages:
-    - System initialization and shutdown
-    - Component lifecycle management
-    - Inter-component communication
-    - Error handling and recovery
+    - Sample lifecycle and tracking with AI agents
+    - Agentic laboratory workflow automation
+    - Intelligent instrument data integration
+    - AI-powered quality control processes  
+    - Multi-agent protocol management and compliance
     """
 
     def __init__(self):
-        self.logger = logging.getLogger("AlimsApp")
+        self.logger = logging.getLogger("ALIMSApp")
         self.running = False
 
-        # Core components
-        self.embryo_pool: Optional[EmbryoPool] = None
-        self.data_stream: Optional[DataStreamMonitor] = None
+        # Core LIMS components
+        self.sample_manager: Optional[SampleManager] = None
+        self.laboratory_workflow: Optional[LaboratoryWorkflow] = None
         self.permission_manager: Optional[PermissionManager] = None
-        self.tray_icon: Optional[AlimsTrayIcon] = None
+        self.lims_interface: Optional[LIMSInterface] = None
 
-        # Configuration
+        # LIMS Configuration
         self.config = {
-            'max_embryos': 15,
-            'data_buffer_limit_mb': 10.0,
-            'privacy_mode': True,
-            'enable_tray': True,
+            'max_samples': 1000,
+            'data_retention_days': 2555,  # 7 years for regulatory compliance
+            'compliance_mode': 'FDA_21CFR11',
+            'enable_interface': True,
             'log_level': 'INFO'
         }
 
@@ -59,7 +60,7 @@ class AlimsApp:
         signal.signal(signal.SIGTERM, self._signal_handler)
 
     async def initialize(self):
-        """Initialize all ALims components"""
+        """Initialize all ALIMS components"""
         try:
             self.logger.info("Initializing ALIMS...")
 
@@ -69,28 +70,29 @@ class AlimsApp:
                 self.logger.error("Failed to obtain required permissions")
                 return False
 
-            # Initialize embryo pool
-            self.embryo_pool = EmbryoPool(
-                max_embryos=self.config['max_embryos'],
-                data_buffer_limit_mb=self.config['data_buffer_limit_mb']
+            # Initialize sample manager
+            self.sample_manager = SampleManager(
+                max_samples=self.config['max_samples'],
+                retention_days=self.config['data_retention_days']
             )
 
-            # Initialize data stream monitor
-            self.data_stream = DataStreamMonitor(
-                embryo_pool=self.embryo_pool,
-                privacy_mode=self.config['privacy_mode']
-            )
+            # Initialize laboratory workflow engine
+            self.laboratory_workflow = LaboratoryWorkflowEngine(self.config)
 
-            # Initialize system tray if enabled
-            if self.config['enable_tray']:
-                self.tray_icon = AlimsTrayIcon()
-                await self.tray_icon.initialize()
+            # Initialize LIMS interface
+            if self.config['enable_interface']:
+                self.lims_interface = LIMSInterface(
+                    self.sample_manager,
+                    self.laboratory_workflow,
+                    self.config
+                )
+                await self.lims_interface.initialize()
 
             self.logger.info("ALIMS initialization complete")
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to initialize ALims: {e}")
+            self.logger.error(f"Failed to initialize ALIMS: {e}")
             return False
 
     async def start(self):
@@ -102,17 +104,14 @@ class AlimsApp:
             self.running = True
             self.logger.info("Starting ALIMS system...")
 
-            # Start core components
-            if self.data_stream:
-                await self.data_stream.start()
+            # Start core LIMS components
+            if self.laboratory_workflow:
+                # Workflow engine starts automatically
 
-            if self.embryo_pool:
-                await self.embryo_pool.start()
-
-            # Show system tray notification
-            if self.tray_icon:
-                await self.tray_icon.show_notification(
-                    "ALIMS Started", "AI Operating System is now active"
+                # Show interface notification
+            if self.lims_interface:
+                await self.lims_interface._add_notification(
+                    "success", "ALIMS Started", "Laboratory Information Management System is now active"
                 )
 
             self.logger.info("ALIMS system started successfully")
@@ -141,11 +140,14 @@ class AlimsApp:
     async def _health_check(self):
         """Perform system health checks"""
         # Check component health
-        if self.embryo_pool and not self.embryo_pool.is_healthy():
-            self.logger.warning("Embryo pool health check failed")
+        if self.sample_manager and not self.sample_manager.is_healthy():
+            self.logger.warning("Sample manager health check failed")
 
-        if self.data_stream and not self.data_stream.is_healthy():
-            self.logger.warning("Data stream health check failed")
+        if self.laboratory_workflow and not self.laboratory_workflow.is_healthy():
+            self.logger.warning("Laboratory workflow health check failed")
+
+        if self.lims_interface and not self.lims_interface.is_healthy():
+            self.logger.warning("LIMS interface health check failed")
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully"""
@@ -158,14 +160,16 @@ class AlimsApp:
         self.running = False
 
         # Stop components in reverse order
-        if self.tray_icon:
-            await self.tray_icon.cleanup()
+        if self.lims_interface:
+            await self.lims_interface.cleanup()
 
-        if self.data_stream:
-            await self.data_stream.stop()
+        if self.laboratory_workflow:
+            # Workflow engine cleanup if needed
+            pass
 
-        if self.embryo_pool:
-            await self.embryo_pool.stop()
+        if self.sample_manager:
+            # Sample manager cleanup if needed
+            pass
 
         self.logger.info("ALIMS shutdown complete")
 

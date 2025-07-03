@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "alims"
 version = "0.1.0"
-description = "ALIMS - Advanced Language Intelligence Management System"
+description = "ALIMS - Agentic Laboratory Information Management System"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [

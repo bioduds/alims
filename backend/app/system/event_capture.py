@@ -28,6 +28,11 @@ try:
 except ImportError:
     WATCHDOG_AVAILABLE = False
     print("Warning: watchdog not available. Install with: pip install watchdog")
+    
+    # Create a dummy base class if watchdog is not available
+    class FileSystemEventHandler:
+        def __init__(self):
+            pass
 
 try:
     import psutil
@@ -38,7 +43,7 @@ except ImportError:
     print("Warning: psutil not available. Install with: pip install psutil")
 
 
-class FileSystemEventHandler(FileSystemEventHandler):
+class AlimsFileSystemEventHandler(FileSystemEventHandler):
     """Handles file system events"""
 
     def __init__(self, event_callback: Callable[[Dict[str, Any]], None]):
@@ -468,7 +473,7 @@ class SystemEventCapture:
             return
 
         try:
-            event_handler = FileSystemEventHandler(self._handle_event)
+            event_handler = AlimsFileSystemEventHandler(self._handle_event)
             self.file_observer = Observer()
 
             # Watch specified paths

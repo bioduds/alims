@@ -124,8 +124,11 @@ class EventFeatureExtractor:
 
         return features
 
-    def _extract_event_type_features(self, df: pd.DataFrame) -> List[np.ndarray]:
+    def _extract_event_type_features(self, df) -> List:
         """Extract event type features handling file_op dominance"""
+        if not SKLEARN_AVAILABLE:
+            return []
+
         features = []
 
         # Event type one-hot (your main types)

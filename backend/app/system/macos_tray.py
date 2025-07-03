@@ -18,8 +18,8 @@ except ImportError:
     RUMPS_AVAILABLE = False
     print("Warning: rumps not available. Install with: pip install rumps")
 
-from backend.app.core.agent_manager import AgentManager
-from backend.app.ai.central_brain import create_central_brain
+from ..core.agent_manager import AgentManager
+from ..ai.central_brain import create_central_brain
 
 logger = logging.getLogger(__name__)
 
@@ -91,15 +91,16 @@ class MacOSTray(rumps.App):
     
     def _initialize_ai_brain(self) -> None:
         """Initialize the central AI brain in a background thread"""
-            def init_brain():
-                try:
-                self.central_brain = create_central_brain()
+        def init_brain():
+            try:
+                config = {'ai': {'model': 'gemma3:4b'}}  # Basic config
+                self.central_brain = create_central_brain(config)
                 logger.info("Central AI brain initialized successfully")
-                except Exception as e:
+            except Exception as e:
                 logger.error(f"Failed to initialize central brain: {e}")
 
         # Start initialization in background
-            threading.Thread(target=init_brain, daemon=True).start()
+        threading.Thread(target=init_brain, daemon=True).start()
 
     @rumps.clicked("📊 System Status")
     def show_system_status(self, _):
@@ -381,5 +382,5 @@ def main():
     tray = create_macos_tray()
     if tray:
         tray.run()
-        else:
+    else:
         print("Error: Failed to create tray application")

@@ -14,7 +14,7 @@ Follow the prompts:
 ### Step 2: Create Repository and Push
 ```bash
 cd /Users/capanema/Projects/alims
-gh repo create alims --public --description "ALIMS - Advanced Language Intelligence Management System" --source . --push
+gh repo create alims --public --description "ALIMS - Agentic Laboratory Information Management System" --source . --push
 ```
 
 This will:
@@ -30,7 +30,7 @@ This will:
 3. Select "New repository"
 4. Fill in the details:
    - **Repository name**: `alims`
-   - **Description**: `ALIMS - Advanced Language Intelligence Management System`
+   - **Description**: `ALIMS - Agentic Laboratory Information Management System`
    - **Visibility**: Public (or Private if you prefer)
    - **DO NOT** initialize with README, .gitignore, or license (we already have these)
 5. Click "Create repository"
@@ -51,7 +51,7 @@ If you have a GitHub personal access token, you can use the API:
 
 ```bash
 # Replace YOUR_TOKEN with your GitHub personal access token
-curl -u YOUR_USERNAME:YOUR_TOKEN https://api.github.com/user/repos -d '{"name":"alims","description":"ALIMS - Advanced Language Intelligence Management System","private":false}'
+curl -u YOUR_USERNAME:YOUR_TOKEN https://api.github.com/user/repos -d '{"name":"alims","description":"ALIMS - Agentic Laboratory Information Management System","private":false}'
 
 # Then connect the repository
 cd /Users/capanema/Projects/alims

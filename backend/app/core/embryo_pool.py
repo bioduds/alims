@@ -18,8 +18,8 @@ import uuid
 from datetime import datetime
 from collections import deque
 
-from backend.app.core.pattern_detector import PatternDetector
-from backend.app.privacy.content_filter import ContentFilter
+from .pattern_detector import PatternDetector
+from ..privacy.content_filter import ContentFilter
 
 try:
     from ..intelligence.event_clustering import create_intelligent_clustering
