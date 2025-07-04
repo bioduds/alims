@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MainInterfaceAgentClient } from '../services/mainInterfaceClient';
 import { cn } from '../utils/cn';
 
 // Types
@@ -34,7 +33,6 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
   const [input, setInput] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const client = new MainInterfaceAgentClient();
 
   useEffect(() => {
     // Start a conversation when component mounts
@@ -51,42 +49,70 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
 
   const startNewConversation = async () => {
     console.log('Starting conversation...');
-    try {
-      const response = await client.startConversation();
-      console.log('Conversation response:', response);
-      if (response.success && response.data) {
-        setConversationId(response.data.conversation_id);
-        setMessages([
-          {
-            role: 'agent',
-            content: `Hello! I am the ALIMS Main Interface Agent. How can I assist you today?`,
-            timestamp: new Date().toISOString(),
-            agent_source: 'system'
+
+    // Retry logic for backend connection
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        console.log(`Conversation start attempt ${attempts + 1}/${maxAttempts}`);
+
+        // Direct fetch instead of using client to debug
+        const response = await fetch('http://127.0.0.1:8001/api/v1/interface/conversations/start', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}),
+        });
+
+        console.log('Raw response status:', response.status);
+        console.log('Raw response ok:', response.ok);
+
+        const data = await response.json();
+        console.log('Raw response data:', data);
+
+        if (data.success && data.conversation_id) {
+          setConversationId(data.conversation_id);
+          setMessages([
+            {
+              role: 'agent',
+              content: `Hello! I am the ALIMS Main Interface Agent. How can I assist you today?`,
+              timestamp: new Date().toISOString(),
+              agent_source: 'system'
+            }
+          ]);
+          console.log('Conversation started with ID:', data.conversation_id);
+          return; // Success, exit the retry loop
+        } else {
+          console.error(`Attempt ${attempts + 1} failed:`, data.error || 'Unknown error');
+          attempts++;
+          if (attempts < maxAttempts) {
+            console.log(`Waiting 2 seconds before retry...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
-        ]);
-        console.log('Conversation started with ID:', response.data.conversation_id);
-      } else {
-        console.error('Failed to start conversation:', response.error);
-        setMessages([
-          {
-            role: 'agent',
-            content: 'Error: Failed to connect to Main Interface Agent. Please check if the backend is running.',
-            timestamp: new Date().toISOString(),
-            agent_source: 'error'
-          }
-        ]);
-      }
-    } catch (err) {
-      console.error(`Failed to start conversation: ${err}`);
-      setMessages([
-        {
-          role: 'agent',
-          content: `Error: ${err}. Please check if the backend is running at http://localhost:8001`,
-          timestamp: new Date().toISOString(),
-          agent_source: 'error'
         }
-      ]);
+      } catch (err) {
+        console.error(`Attempt ${attempts + 1} error:`, err);
+        attempts++;
+        if (attempts < maxAttempts) {
+          console.log(`Waiting 2 seconds before retry...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
     }
+
+    // All attempts failed
+    console.error('All conversation start attempts failed');
+    setMessages([
+      {
+        role: 'agent',
+        content: 'Error: Failed to connect to Main Interface Agent. Please check if the backend is running at http://127.0.0.1:8001',
+        timestamp: new Date().toISOString(),
+        agent_source: 'error'
+      }
+    ]);
   };
 
   // Simplified sendMessage: send user text to main agent and handle responses
@@ -109,30 +135,53 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
     setIsLoading(true);
 
     try {
-      console.log('Calling client.sendMessage...');
-      const resp = await client.sendMessage(conversationId, messageText);
-      console.log('Send message response:', resp);
+      console.log('Calling direct fetch to send message...');
 
-      if (resp.success && resp.data) {
-        // Get the current message count before adding new ones
-        const currentMessageCount = messages.length + 1; // +1 for the user message we just added
+      // Direct fetch instead of using client
+      const response = await fetch('http://127.0.0.1:8001/api/v1/interface/conversations/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          message: messageText,
+          message_type: 'general',
+          priority: 'normal'
+        }),
+      });
 
+      console.log('Send message response status:', response.status);
+      const data = await response.json();
+      console.log('Send message response data:', data);
+
+      if (data.success && data.messages) {
         // Get all messages from backend
-        const allMessages = resp.data.messages;
+        const allMessages = data.messages;
         console.log('All messages from backend:', allMessages.length);
-        console.log('Current frontend message count:', currentMessageCount);
+        console.log('Current messages before sending:', messages.length);
 
-        // Only take messages that are NEW (beyond our current count)
-        const newMessages = allMessages.slice(currentMessageCount);
+        // The backend returns: [old messages, user message, new agent responses]
+        // We want only the NEW agent responses (everything after user message)
+        // Find the user message we just sent in the backend response
+        const userMsgIndex = allMessages.findIndex((m: any) =>
+          m.role === 'user' && m.content === messageText
+        );
 
-        const newMsgs: Message[] = newMessages.map(m => ({
+        console.log('User message found at index:', userMsgIndex);
+
+        // Take everything after the user message (agent responses only)
+        const newAgentMessages = userMsgIndex >= 0 ? allMessages.slice(userMsgIndex + 1) : [];
+
+        const newMsgs: Message[] = newAgentMessages.map((m: any) => ({
           role: m.role as 'user' | 'agent',
           content: m.content,
           timestamp: m.timestamp,
           agent_source: m.agent_source
         }));
 
-        console.log('New messages to add:', newMsgs);
+        console.log('New agent messages to add:', newMsgs);
+        console.log('Raw new agent messages from backend:', newAgentMessages);
 
         // Only add the NEW messages
         if (newMsgs.length > 0) {
@@ -151,10 +200,10 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
           });
         }
       } else {
-        console.error('Send message failed:', resp.error);
+        console.error('Send message failed:', data.error);
         const errorMsg: Message = {
           role: 'agent',
-          content: `Error: ${resp.error || 'Failed to send message'}`,
+          content: `Error: ${data.error || 'Failed to send message'}`,
           timestamp: new Date().toISOString(),
           agent_source: 'error'
         };

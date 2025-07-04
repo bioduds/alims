@@ -164,28 +164,27 @@ async def send_message(request: MessageSendRequest):
             # Process the request
             await agent.process_next_request()
             
-            # Auto-complete agent work for demo purposes
+            # Auto-complete agent work with intelligent responses
             if request.conversation_id in agent.conversation_contexts:
                 context = agent.conversation_contexts[request.conversation_id]
-                active_agents = list(context.active_agents)
+                logger.info(
+                    f"Processing intelligent response for message: {request.message}")
 
-                # Simulate each active agent completing their work
-                for agent_id in active_agents:
-                    # Mark agent as busy
-                    if agent_id in agent.available_agents:
-                        agent.available_agents[agent_id].state = AgentState.BUSY
+                # Generate intelligent response based on the user's message
+                response_content = generate_intelligent_response(
+                    request.message)
+                logger.info(f"Generated response: {response_content[:100]}...")
 
-                    # Simulate agent response
-                    await agent.receive_agent_response(
-                        agent_id=agent_id,
-                        response_content=f"I'm {agent_id} and I've processed your request: '{request.message}'. Here's my analysis and response.",
-                        success=True
-                    )
-
-                # Synthesize responses if we had active agents
-                if active_agents:
-                    await agent.synthesize_and_respond()
-                    context.active_agents.clear()
+                # Create and add the agent response directly to the conversation history
+                from datetime import datetime
+                agent_msg = type('Message', (), {
+                    'role': 'assistant',
+                    'content': response_content,
+                    'timestamp': datetime.now(),
+                    'agent_source': 'main_interface_agent'
+                })()
+                context.messages.append(agent_msg)
+                logger.info("Agent response added to conversation history")
 
             # Get updated messages
             history = agent.get_conversation_history(request.conversation_id)
@@ -350,6 +349,103 @@ async def simulate_agent_work(conversation_id: str):
     except Exception as e:
         logger.error(f"Error simulating agent work: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def generate_intelligent_response(user_message: str) -> str:
+    """Generate an intelligent response based on the user's message content."""
+    user_msg_lower = user_message.lower()
+
+    # Sample tracking related responses
+    if any(keyword in user_msg_lower for keyword in ['sample', 'samples', 'register', 'track', 'tracking']):
+        if 'register' in user_msg_lower:
+            return """I can help you register new samples in the ALIMS system. To register samples, I'll need:
+
+• Sample ID or batch number
+• Sample type (blood, tissue, chemical, etc.)
+• Collection date and time
+• Storage requirements
+• Any special handling instructions
+
+Would you like to start the sample registration process? Please provide the sample details or let me know if you'd like me to guide you through the registration workflow."""
+
+        elif 'track' in user_msg_lower:
+            return """I can help you track samples throughout their lifecycle in the laboratory. The ALIMS system provides:
+
+• Real-time sample location tracking
+• Chain of custody documentation
+• Processing status updates
+• Quality control checkpoints
+• Storage condition monitoring
+
+Please provide a sample ID or batch number to track, or let me know what specific tracking information you need."""
+
+    # Analysis related responses
+    elif any(keyword in user_msg_lower for keyword in ['analysis', 'analyze', 'test', 'results']):
+        return """I can assist with laboratory analysis workflows including:
+
+• Scheduling analytical tests
+• Managing test protocols
+• Monitoring analysis progress
+• Reviewing and approving results
+• Generating analytical reports
+
+What type of analysis are you looking to perform? Please specify the sample type and analysis requirements."""
+
+    # Quality control responses
+    elif any(keyword in user_msg_lower for keyword in ['qc', 'quality', 'control', 'validation']):
+        return """I can help with quality control processes:
+
+• QC sample preparation and testing
+• Method validation procedures
+• Control chart monitoring
+• Out-of-specification investigations
+• Compliance documentation
+
+What QC activities do you need assistance with?"""
+
+    # Data and reporting
+    elif any(keyword in user_msg_lower for keyword in ['data', 'report', 'export', 'chart', 'graph']):
+        return """I can help with data management and reporting:
+
+• Generate analytical reports
+• Export data in various formats
+• Create visualizations and charts
+• Trend analysis
+• Compliance reporting
+
+What type of data or report do you need? I can create visualizations on the analysis stage."""
+
+    # Equipment and instruments
+    elif any(keyword in user_msg_lower for keyword in ['instrument', 'equipment', 'calibration', 'maintenance']):
+        return """I can assist with instrument management:
+
+• Equipment calibration scheduling
+• Maintenance tracking
+• Performance monitoring
+• Qualification protocols
+• Usage logs
+
+Which instruments do you need help with?"""
+
+    # General greeting or help
+    elif any(keyword in user_msg_lower for keyword in ['hello', 'hi', 'help', 'assist']):
+        return """Hello! I'm the ALIMS Main Interface Agent. I can help you with:
+
+🔬 **Sample Management**: Register, track, and manage laboratory samples
+📊 **Analysis Workflows**: Schedule tests, monitor progress, review results  
+📈 **Data & Reports**: Generate reports, create visualizations, export data
+🛠️ **Quality Control**: QC testing, validation, compliance monitoring
+⚙️ **Instrument Management**: Calibration, maintenance, performance tracking
+
+What would you like to work on today?"""
+
+    # Default response
+    else:
+        return f"""I understand you mentioned: "{user_message}"
+
+As the ALIMS Main Interface Agent, I can help with laboratory information management including sample tracking, analysis workflows, quality control, data management, and reporting.
+
+Could you please clarify what specific LIMS task you'd like assistance with? I'm here to help streamline your laboratory operations."""
 
 if __name__ == "__main__":
     uvicorn.run(
