@@ -22,6 +22,7 @@ from .core.sample_manager import SampleManager
 from .core.laboratory_workflow import LaboratoryWorkflow
 from .system.permissions import PermissionManager
 from .system.lims_interface import LIMSInterface
+from .intelligence.main_interface_service import LIMSMainInterfaceService
 
 
 class ALIMSApp:
@@ -45,6 +46,7 @@ class ALIMSApp:
         self.laboratory_workflow: Optional[LaboratoryWorkflow] = None
         self.permission_manager: Optional[PermissionManager] = None
         self.lims_interface: Optional[LIMSInterface] = None
+        self.main_interface_service: Optional[LIMSMainInterfaceService] = None
 
         # LIMS Configuration
         self.config = {
@@ -87,6 +89,10 @@ class ALIMSApp:
                     self.config
                 )
                 await self.lims_interface.initialize()
+
+            # Initialize main interface service
+            self.main_interface_service = LIMSMainInterfaceService()
+            await self.main_interface_service.initialize()
 
             self.logger.info("ALIMS initialization complete")
             return True
@@ -149,6 +155,9 @@ class ALIMSApp:
         if self.lims_interface and not self.lims_interface.is_healthy():
             self.logger.warning("LIMS interface health check failed")
 
+        if self.main_interface_service and not self.main_interface_service.is_healthy():
+            self.logger.warning("Main interface service health check failed")
+
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully"""
         self.logger.info(f"Received signal {signum}, shutting down...")
@@ -162,6 +171,9 @@ class ALIMSApp:
         # Stop components in reverse order
         if self.lims_interface:
             await self.lims_interface.cleanup()
+
+        if self.main_interface_service:
+            await self.main_interface_service.cleanup()
 
         if self.laboratory_workflow:
             # Workflow engine cleanup if needed
@@ -200,4 +212,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    asyncio.run(main())

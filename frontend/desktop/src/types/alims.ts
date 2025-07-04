@@ -205,4 +205,56 @@ export interface ChatSession {
   message_count: number;
   active_agents: string[];
   messages: Message[];
-} 
+}
+
+// LIMS-specific types for agent interactions
+export interface Sample {
+  sample_id: string;
+  patient_id: string;
+  state: 'RECEIVED' | 'ACCESSIONED' | 'SCHEDULED' | 'TESTING' | 'QC_PENDING' | 'QC_APPROVED' | 'REPORTED' | 'ARCHIVED';
+  barcode?: string;
+  accession_number?: string;
+  received_at: string;
+  sample_type: string;
+  tests_requested: string[];
+  priority: 'ROUTINE' | 'URGENT' | 'STAT';
+  location?: string;
+}
+
+export interface LIMSAgent {
+  agent_id: string;
+  name: string;
+  specialization: string;
+  state_handled: string;
+  personality_traits: Record<string, number>;
+  status: 'ACTIVE' | 'BUSY' | 'IDLE';
+  current_tasks: number;
+}
+
+export interface SampleNotification {
+  id: string;
+  type: 'SAMPLE_ARRIVED' | 'URGENT_SAMPLE' | 'BATCH_COMPLETE' | 'QC_ISSUE';
+  message: string;
+  sample_id?: string;
+  timestamp: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  requires_action: boolean;
+}
+
+export interface LIMSConversation {
+  id: string;
+  agent: LIMSAgent;
+  sample_context?: Sample;
+  messages: Array<{
+    role: 'user' | 'agent';
+    content: string;
+    timestamp: string;
+    action_suggestions?: string[];
+    workflow_context?: {
+      current_state: string;
+      next_states: string[];
+      required_actions: string[];
+    };
+  }>;
+  status: 'ACTIVE' | 'COMPLETED' | 'ESCALATED';
+}
