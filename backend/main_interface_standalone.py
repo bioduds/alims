@@ -164,6 +164,29 @@ async def send_message(request: MessageSendRequest):
             # Process the request
             await agent.process_next_request()
             
+            # Auto-complete agent work for demo purposes
+            if request.conversation_id in agent.conversation_contexts:
+                context = agent.conversation_contexts[request.conversation_id]
+                active_agents = list(context.active_agents)
+
+                # Simulate each active agent completing their work
+                for agent_id in active_agents:
+                    # Mark agent as busy
+                    if agent_id in agent.available_agents:
+                        agent.available_agents[agent_id].state = AgentState.BUSY
+
+                    # Simulate agent response
+                    await agent.receive_agent_response(
+                        agent_id=agent_id,
+                        response_content=f"I'm {agent_id} and I've processed your request: '{request.message}'. Here's my analysis and response.",
+                        success=True
+                    )
+
+                # Synthesize responses if we had active agents
+                if active_agents:
+                    await agent.synthesize_and_respond()
+                    context.active_agents.clear()
+
             # Get updated messages
             history = agent.get_conversation_history(request.conversation_id)
             messages = []
