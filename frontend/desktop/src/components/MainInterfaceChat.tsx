@@ -214,36 +214,16 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
       );
 
       if (response.success && response.data) {
-        // Enhanced response with UI components based on intent
-        const enhancedMessages = response.data.messages.map(msg => {
-          if (msg.role === 'agent') {
-            // Add UI component based on user intent
-            const enhanced: Message = {
-              ...msg,
-              ui_component: intent.suggestedComponent,
-              data: intent.quickActions ? { actions: intent.quickActions } : undefined
-            };
-
-            // Special handling for sample registration
-            if (intent.intent === 'register_sample' && intent.suggestedComponent === 'sample_registration') {
-              enhanced.content += '\n\nI\'ve prepared the sample registration form for you. Please fill in the details below:';
-            }
-
-            return enhanced;
+        // Use agent response messages directly
+        const msgs = response.data.messages;
+        setMessages(msgs);
+        // Trigger visualization updates if present in agent data
+        msgs.forEach(msg => {
+          if (msg.role === 'agent' && msg.data?.visualization) {
+            onVisualizationUpdate?.(msg.data.visualization as VisualizationData);
           }
-          return msg;
         });
 
-        setMessages(enhancedMessages);
-
-        // Update workflow state if needed
-        if (intent.intent === 'register_sample') {
-          setCurrentWorkflow({
-            current_workflow: 'Sample Registration',
-            step: 1,
-            ui_component: 'sample_registration'
-          });
-        }
       } else {
         setError(response.error || 'Failed to send message');
       }
