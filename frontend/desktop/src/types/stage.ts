@@ -460,6 +460,12 @@ export interface LimsChatMessage extends ChatMessage {
 }
 
 // TLA+ Stage Context matching specification
+export interface StageState {
+  showSampleTracker: boolean;
+  showTestCatalog: boolean;
+  showKnowledgeBase: boolean;
+}
+
 export interface LimsStageContext {
   currentFocus: ChatMessageType | 'GENERAL';
   activeWorkflow: LimsComponentType | 'NONE';

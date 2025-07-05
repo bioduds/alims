@@ -122,7 +122,7 @@ class ALIMSApp:
                     "success", "ALIMS Started", "Laboratory Information Management System is now active"
                 )
 
-            self.logger.info("ALIMS system started successfully")
+                self.logger.info("ALIMS system started successfully")
 
             # Run main loop
             await self._main_loop()

@@ -1,0 +1,20 @@
+api:
+  host: '127.0.0.1'
+  port: 8001
+  base_url: 'http://127.0.0.1:8001'
+  cors_origins: ['*']
+  
+agents:
+  main_interface:
+    enabled: true
+    model: 'gemma-3-4b'
+    max_tokens: 4096
+    temperature: 0.7
+    
+logging:
+  level: 'INFO'
+  file: './logs/main_interface.log'
+
+database:
+  url: 'sqlite:///data/lims.db'
+  echo: false

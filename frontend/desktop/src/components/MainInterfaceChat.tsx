@@ -29,22 +29,38 @@ interface Message {
 export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
   const { onVisualizationUpdate } = props;
   const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [input, setInput] = useState('');
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    // Start a conversation when component mounts
-    startNewConversation();
+    checkConnection();
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const API_BASE = 'http://127.0.0.1:8001';
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const checkConnection = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/health`);
+      if (response.ok) {
+        setConnectionStatus('connected');
+      } else {
+        throw new Error('Health check failed');
+      }
+    } catch (error) {
+      console.error('Connection error:', error);
+      setConnectionStatus('error');
+      // Retry connection every 5 seconds
+      retryTimeoutRef.current = setTimeout(checkConnection, 5000);
+    }
   };
 
   const startNewConversation = async () => {
@@ -126,105 +142,51 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
   };
 
   // Simplified sendMessage: send user text to main agent and handle responses
-  const sendMessage = async (text?: string) => {
-    const messageText = text || input.trim();
-    console.log('Sending message:', messageText, 'ConversationID:', conversationId);
-
-    if (!messageText || !conversationId || isLoading) {
-      console.log('Cannot send message - missing data or loading');
-      return;
-    }
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isLoading || connectionStatus !== 'connected') return;
 
     const userMsg: Message = {
       role: 'user',
-      content: messageText,
+      content: text,
       timestamp: new Date().toISOString()
     };
+
     setMessages(prev => [...prev, userMsg]);
-    setInput('');
+    setInputValue('');
     setIsLoading(true);
 
     try {
-      console.log('Calling direct fetch to send message...');
-
-      // Direct fetch instead of using client
-      const response = await fetch('http://127.0.0.1:8001/api/v1/interface/conversations/message', {
+      const response = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          conversation_id: conversationId,
-          message: messageText,
-          message_type: 'general',
-          priority: 'normal'
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
       });
 
-      console.log('Send message response status:', response.status);
+      if (!response.ok) throw new Error('Chat request failed');
+
       const data = await response.json();
-      console.log('Send message response data:', data);
-
-      if (data.success && data.messages) {
-        // Backend returns only the agent response messages directly
-        const agentMessages = data.messages;
-        console.log('Agent messages from backend:', agentMessages.length);
-        console.log('Raw agent messages:', agentMessages);
-
-        const newMsgs: Message[] = agentMessages.map((m: any) => ({
-          role: m.role as 'user' | 'agent',
-          content: m.content,
-          timestamp: m.timestamp,
-          agent_source: m.agent_source
-        }));
-
-        console.log('New agent messages to add:', newMsgs);
-
-        // Add the agent response messages
-        if (newMsgs.length > 0) {
-          setMessages(prev => [...prev, ...newMsgs]);
-
-          // Trigger visualization if agent_source indicates visualization
-          newMsgs.forEach(m => {
-            if (m.role === 'agent' && m.agent_source === 'visualization') {
-              try {
-                const viz = JSON.parse(m.content) as VisualizationData;
-                onVisualizationUpdate?.(viz);
-              } catch (e) {
-                console.error('Failed to parse visualization:', e);
-              }
-            }
-          });
-
-          // Generate intelligent stage content based on the conversation
-          const lastAgentMessage = newMsgs[newMsgs.length - 1];
-          if (lastAgentMessage && lastAgentMessage.role === 'agent') {
-            const userMessage = messages[messages.length - 1]?.content || '';
-            const stageContent = generateStageContentFromResponse(lastAgentMessage.content, userMessage);
-            if (stageContent) {
-              onVisualizationUpdate?.(stageContent);
-            }
-          }
-        }
-      } else {
-        console.error('Send message failed:', data.error);
-        const errorMsg: Message = {
-          role: 'agent',
-          content: `Error: ${data.error || 'Failed to send message'}`,
-          timestamp: new Date().toISOString(),
-          agent_source: 'error'
-        };
-        setMessages(prev => [...prev, errorMsg]);
-      }
-    } catch (err) {
-      console.error(`Failed to send message: ${err}`);
-      const errorMsg: Message = {
+      const agentMsg: Message = {
         role: 'agent',
-        content: `Network error: ${err}`,
+        content: data.message,
         timestamp: new Date().toISOString(),
-        agent_source: 'error'
+        agent_source: data.agent_info?.agent,
+        data: data.visualization
       };
-      setMessages(prev => [...prev, errorMsg]);
+
+      setMessages(prev => [...prev, agentMsg]);
+
+      if (data.visualization && onVisualizationUpdate) {
+        onVisualizationUpdate(data.visualization);
+      }
+    } catch (error) {
+      console.error('Message error:', error);
+      setMessages(prev => [...prev, {
+        role: 'agent',
+        content: 'Failed to send message. Please check if the backend server is running.',
+        timestamp: new Date().toISOString()
+      }]);
+      setConnectionStatus('error');
+      checkConnection();
     } finally {
       setIsLoading(false);
     }
@@ -236,21 +198,44 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
     startNewConversation();
   };
 
+  // Helper to render message content with special formatting
+  const renderMessageContent = (msg: Message) => {
+    let content = msg.content;
+    
+    // Handle special content types
+    if (msg.data?.type === 'visualization') {
+      content = `[Visualization: ${msg.data.title || 'Untitled'}]`;
+      if (onVisualizationUpdate) {
+        onVisualizationUpdate(msg.data);
+      }
+    }
+    
+    // Convert markdown-style code blocks to HTML
+    content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => (
+      `<pre class="bg-gray-900 p-2 rounded mt-2 mb-2 text-sm overflow-x-auto">
+        <code>${code.trim()}</code>
+      </pre>`
+    ));
+    
+    // Convert inline code
+    content = content.replace(/`([^`]+)`/g, '<code class="bg-gray-900 px-1 rounded">$1</code>');
+    
+    // Convert bullet points
+    content = content.replace(/^[•\-*]\s(.+)$/gm, '• $1');
+    
+    return <div dangerouslySetInnerHTML={{ __html: content }} />;
+  };
+
+  // Handle Enter key in textarea
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      const text = inputValue.trim();
+      if (text) {
+        sendMessage(text);
+      }
     }
   };
-
-  const renderMessageContent = (message: Message) => (
-    <p className={cn(
-      "text-sm whitespace-pre-wrap",
-      message.role === 'agent' ? 'text-gray-200' : 'text-blue-300'
-    )}>
-      {message.content}
-    </p>
-  );
 
   // Function to generate intelligent stage content based on chat response
   const generateStageContentFromResponse = (agentMessage: string, userMessage: string): VisualizationData | null => {
@@ -586,13 +571,13 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
         <textarea
           className="flex-1 resize-none p-2 bg-gray-900 text-white rounded mr-2"
           rows={1}
-          value={input}
-          onChange={e => setInput(e.target.value)}
+          value={inputValue}
+          onChange={e => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type your message..."
         />
         <button
-          onClick={() => sendMessage()}
+          onClick={() => sendMessage(inputValue)}
           className="px-4 bg-blue-600 hover:bg-blue-700 text-white rounded"
           disabled={isLoading}
         >

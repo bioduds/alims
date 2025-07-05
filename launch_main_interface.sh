@@ -8,14 +8,14 @@ echo "🚀 Starting ALIMS Main Interface Agent API..."
 # Set the Python path to include the implementation
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/plans/feature-2025010301-main-interface-agent/implementation"
 
+# Activate virtual environment if it exists
+if [ -d "alims_env" ]; then
+    echo "📦 Activating virtual environment..."
+    source alims_env/bin/activate
+fi
+
 # Navigate to the backend directory
 cd backend
-
-# Activate virtual environment if it exists
-if [ -d "../alims_env" ]; then
-    echo "📦 Activating virtual environment..."
-    source ../alims_env/bin/activate
-fi
 
 # Install required dependencies if needed
 echo "📋 Checking dependencies..."

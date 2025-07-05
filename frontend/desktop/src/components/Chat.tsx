@@ -5,9 +5,10 @@ import { Message, ChatResponse, ChatSession } from '../types/alims';
 
 interface ChatProps {
   className?: string;
+  onResponse?: (response: ChatResponse) => void;
 }
 
-export const Chat: React.FC<ChatProps> = ({ className }) => {
+export const Chat: React.FC<ChatProps> = ({ className, onResponse }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isResizing, setIsResizing] = useState(false);
@@ -41,6 +42,12 @@ export const Chat: React.FC<ChatProps> = ({ className }) => {
 
     initChat();
   }, []);
+
+  // Process response and notify parent
+  const handleChatResponse = async (response: ChatResponse) => {
+    // Notify parent component for TLA+ validation
+    onResponse?.(response);
+  };
 
   // Scroll to bottom when messages change
   const scrollToBottom = () => {
