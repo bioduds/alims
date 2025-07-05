@@ -84,6 +84,16 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
             }
           ]);
           console.log('Conversation started with ID:', data.conversation_id);
+
+          // Set initial stage content
+          const initialStageContent = generateStageContentFromResponse(
+            'Hello! I am the ALIMS Main Interface Agent. How can I assist you today?',
+            'initial greeting'
+          );
+          if (initialStageContent) {
+            onVisualizationUpdate?.(initialStageContent);
+          }
+
           return; // Success, exit the retry loop
         } else {
           console.error(`Attempt ${attempts + 1} failed:`, data.error || 'Unknown error');
@@ -156,24 +166,12 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
       console.log('Send message response data:', data);
 
       if (data.success && data.messages) {
-        // Get all messages from backend
-        const allMessages = data.messages;
-        console.log('All messages from backend:', allMessages.length);
-        console.log('Current messages before sending:', messages.length);
+        // Backend returns only the agent response messages directly
+        const agentMessages = data.messages;
+        console.log('Agent messages from backend:', agentMessages.length);
+        console.log('Raw agent messages:', agentMessages);
 
-        // The backend returns: [old messages, user message, new agent responses]
-        // We want only the NEW agent responses (everything after user message)
-        // Find the user message we just sent in the backend response
-        const userMsgIndex = allMessages.findIndex((m: any) =>
-          m.role === 'user' && m.content === messageText
-        );
-
-        console.log('User message found at index:', userMsgIndex);
-
-        // Take everything after the user message (agent responses only)
-        const newAgentMessages = userMsgIndex >= 0 ? allMessages.slice(userMsgIndex + 1) : [];
-
-        const newMsgs: Message[] = newAgentMessages.map((m: any) => ({
+        const newMsgs: Message[] = agentMessages.map((m: any) => ({
           role: m.role as 'user' | 'agent',
           content: m.content,
           timestamp: m.timestamp,
@@ -181,9 +179,8 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
         }));
 
         console.log('New agent messages to add:', newMsgs);
-        console.log('Raw new agent messages from backend:', newAgentMessages);
 
-        // Only add the NEW messages
+        // Add the agent response messages
         if (newMsgs.length > 0) {
           setMessages(prev => [...prev, ...newMsgs]);
 
@@ -198,6 +195,16 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
               }
             }
           });
+
+          // Generate intelligent stage content based on the conversation
+          const lastAgentMessage = newMsgs[newMsgs.length - 1];
+          if (lastAgentMessage && lastAgentMessage.role === 'agent') {
+            const userMessage = messages[messages.length - 1]?.content || '';
+            const stageContent = generateStageContentFromResponse(lastAgentMessage.content, userMessage);
+            if (stageContent) {
+              onVisualizationUpdate?.(stageContent);
+            }
+          }
         }
       } else {
         console.error('Send message failed:', data.error);
@@ -244,6 +251,298 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
       {message.content}
     </p>
   );
+
+  // Function to generate intelligent stage content based on chat response
+  const generateStageContentFromResponse = (agentMessage: string, userMessage: string): VisualizationData | null => {
+    const msgLower = agentMessage.toLowerCase();
+    const userMsgLower = userMessage.toLowerCase();
+
+    // Sample tracking and registration
+    if (msgLower.includes('sample') && (msgLower.includes('register') || msgLower.includes('batch') || msgLower.includes('accession'))) {
+      return {
+        type: 'text',
+        title: '🧪 Sample Registration Guide',
+        content: `Sample Registration Workflow:
+
+📋 Required Information:
+• Batch numbers or accession codes
+• Sample description (type, source, parameters)
+• Collection date and conditions
+• Associated workflows/protocols
+
+🔄 Next Steps:
+1. Prepare sample labels with unique identifiers
+2. Document chain of custody information
+3. Select appropriate testing protocols
+4. Schedule analysis based on priority
+
+💡 Tip: Use the sample tracking system to monitor progress and ensure compliance with laboratory protocols.`
+      };
+    }
+
+    // Test availability and analytical methods
+    if (msgLower.includes('test') && (msgLower.includes('available') || msgLower.includes('hplc') || msgLower.includes('gc') || msgLower.includes('uv'))) {
+      return {
+        type: 'text',
+        title: '🔬 Available Analytical Tests',
+        content: `Current Laboratory Testing Capabilities:
+
+🧬 Analytical Methods:
+• HPLC (High-Performance Liquid Chromatography)
+• GC-MS (Gas Chromatography-Mass Spectrometry) 
+• UV-VIS Spectrophotometry
+• Complete Blood Count (CBC)
+• Blood Chemistry Profile
+• Molecular Diagnostics (PCR, DNA sequencing)
+
+⚗️ Sample Types Supported:
+• Biological samples (blood, urine, tissue)
+• Chemical compounds and mixtures
+• Environmental samples
+• Pharmaceutical formulations
+
+📊 Turnaround Times:
+• Routine: 24-48 hours
+• Urgent: 4-8 hours
+• Molecular: 2-5 days
+
+📞 Contact lab scheduling to book tests`
+      };
+    }
+
+    // Workflow and protocol management
+    if (msgLower.includes('workflow') || msgLower.includes('protocol') || msgLower.includes('procedure')) {
+      return {
+        type: 'text',
+        title: '📋 Laboratory Workflow Management',
+        content: `Laboratory Workflow Options:
+
+🔄 Standard Workflows:
+• Sample Receipt & Accessioning
+• Quality Control Testing
+• Method Validation Protocol
+• Instrument Calibration
+• Data Review & Approval
+
+⚡ Automated Processes:
+• Sample tracking and chain of custody
+• Result reporting and notifications
+• Compliance documentation
+• Equipment maintenance scheduling
+
+🎯 Optimization Tips:
+• Batch similar samples for efficiency
+• Schedule preventive maintenance
+• Use barcode scanning for accuracy
+• Implement electronic signatures
+
+📈 Monitor workflow metrics in real-time`
+      };
+    }
+
+    // Quality control and compliance
+    if (msgLower.includes('quality') || msgLower.includes('qc') || msgLower.includes('compliance') || msgLower.includes('validation')) {
+      return {
+        type: 'text',
+        title: '✅ Quality Control & Compliance',
+        content: `Quality Assurance Framework:
+
+🎯 QC Requirements:
+• Control sample analysis with each batch
+• Method validation and verification
+• Instrument performance checks
+• Analyst competency assessment
+
+📊 Statistical Controls:
+• Levey-Jennings charts for trending
+• Westgard rules for error detection
+• Control limits and alert thresholds
+• Corrective action procedures
+
+📑 Compliance Standards:
+• ISO 15189 (Medical laboratories)
+• CAP/CLIA requirements
+• FDA regulations (if applicable)
+• Internal quality policies
+
+🔍 Audit Trail:
+• Complete documentation chain
+• Electronic signatures and timestamps
+• Change control procedures
+• Regular management review`
+      };
+    }
+
+    // Instrument and equipment
+    if (msgLower.includes('instrument') || msgLower.includes('equipment') || msgLower.includes('calibration') || msgLower.includes('maintenance')) {
+      return {
+        type: 'text',
+        title: '⚙️ Instrument Management',
+        content: `Laboratory Equipment Status:
+
+🔧 Maintenance Schedule:
+• Daily: Performance checks and QC
+• Weekly: Cleaning and inspection
+• Monthly: Calibration verification
+• Quarterly: Preventive maintenance
+
+📈 Performance Monitoring:
+• Instrument uptime and availability
+• Calibration curve correlation
+• Control sample recovery
+• Error log analysis
+
+🎯 Calibration Standards:
+• Reference materials traceability
+• Calibration frequency requirements
+• Measurement uncertainty assessment
+• Out-of-specification investigations
+
+📊 Equipment Utilization:
+• Sample throughput metrics
+• Resource allocation optimization
+• Capacity planning and scheduling
+• Cost per test analysis`
+      };
+    }
+
+    // Data analysis and reporting
+    if (msgLower.includes('data') || msgLower.includes('report') || msgLower.includes('result') || msgLower.includes('analysis')) {
+      return {
+        type: 'text',
+        title: '📊 Data Analysis & Reporting',
+        content: `Laboratory Data Management:
+
+📈 Analysis Capabilities:
+• Statistical analysis and trending
+• Outlier detection and investigation
+• Method comparison studies
+• Control chart interpretation
+
+📋 Report Generation:
+• Individual test reports
+• Batch summary reports
+• Quality control summaries
+• Management dashboards
+
+🔍 Data Integrity:
+• Electronic data capture
+• Audit trail maintenance
+• Data backup and recovery
+• Access control and security
+
+📊 Visualization Options:
+• Real-time dashboards
+• Trend analysis charts
+• Control charts and histograms
+• Custom report templates
+
+💾 Export formats: PDF, Excel, CSV, LIMS integration`
+      };
+    }
+
+    // Safety and emergency procedures
+    if (msgLower.includes('safety') || msgLower.includes('emergency') || msgLower.includes('hazard') || msgLower.includes('incident')) {
+      return {
+        type: 'text',
+        title: '🚨 Laboratory Safety & Emergency Procedures',
+        content: `Safety Management System:
+
+⚠️ Hazard Assessment:
+• Chemical safety data sheets (SDS)
+• Biological risk categories
+• Physical hazard identification
+• Personal protective equipment (PPE)
+
+🚨 Emergency Procedures:
+• Chemical spill response
+• Fire evacuation protocols
+• Medical emergency procedures
+• Equipment failure protocols
+
+📋 Incident Reporting:
+• Near-miss documentation
+• Accident investigation
+• Root cause analysis
+• Corrective action tracking
+
+🎓 Training Requirements:
+• Initial safety orientation
+• Ongoing competency assessment
+• Emergency drill participation
+• Documentation and certification
+
+📞 Emergency Contacts: Extension 911 (Internal), 911 (External)`
+      };
+    }
+
+    // General help or greeting
+    if (userMsgLower.includes('hello') || userMsgLower.includes('help') || msgLower.includes('assist') || msgLower.includes('main interface agent')) {
+      return {
+        type: 'text',
+        title: '🤖 ALIMS Main Interface Agent',
+        content: `Welcome to the Advanced Laboratory Information Management System!
+
+🎯 I can help you with:
+
+🧪 Sample Management:
+• Sample registration and tracking
+• Chain of custody documentation
+• Test scheduling and prioritization
+
+🔬 Analytical Services:
+• Available test methods and capabilities
+• Turnaround times and scheduling
+• Quality control requirements
+
+📋 Workflow Optimization:
+• Protocol development and validation
+• Process automation recommendations
+• Resource allocation planning
+
+📊 Data & Reporting:
+• Result interpretation and trending
+• Custom report generation
+• Compliance documentation
+
+⚙️ System Management:
+• Instrument status and maintenance
+• User access and permissions
+• System configuration
+
+💡 Just ask me about any laboratory operation, and I'll provide specific guidance and relevant options!`
+      };
+    }
+
+    // Default: Show general laboratory options
+    return {
+      type: 'text',
+      title: '🔬 Laboratory Operations Center',
+      content: `Laboratory Management Options:
+
+🧪 Sample Operations:
+• Track samples through the workflow
+• Schedule tests and assign priorities
+• Monitor turnaround times
+
+📊 Quality Management:
+• Review control charts and trends
+• Investigate out-of-specification results
+• Generate compliance reports
+
+⚙️ Instrument Management:
+• Check equipment status and schedules
+• Review calibration and maintenance
+• Monitor performance metrics
+
+📋 Workflow Optimization:
+• Analyze process efficiency
+• Identify bottlenecks and delays
+• Implement improvement strategies
+
+💡 Ask me about specific laboratory operations for detailed guidance and actionable insights.`
+    };
+  };
 
   return (
     <div className="flex flex-col h-full">

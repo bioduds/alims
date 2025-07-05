@@ -90,8 +90,10 @@ class ALIMSApp:
                 )
                 await self.lims_interface.initialize()
 
-            # Initialize main interface service
-            self.main_interface_service = LIMSMainInterfaceService()
+            # Initialize enhanced main interface service (TLA+ validated)
+            from .intelligence.enhanced_main_interface_service import EnhancedLIMSMainInterfaceService
+            self.main_interface_service = EnhancedLIMSMainInterfaceService(
+                self.config)
             await self.main_interface_service.initialize()
 
             self.logger.info("ALIMS initialization complete")
