@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 import uvicorn
 
-from main_interface_router import router as interface_router
+from .main_interface_router import router as interface_router
 
 # Setup logging
 logging.basicConfig(

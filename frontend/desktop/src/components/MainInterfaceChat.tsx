@@ -46,14 +46,26 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
   }, []);
 
   const API_BASE = 'http://127.0.0.1:8001';
+  const API_PREFIX = '/api/v1/interface';
 
   const checkConnection = async () => {
+    console.log('Checking connection to backend...');
     try {
       const response = await fetch(`${API_BASE}/health`);
+      console.log('Health check response:', response.status);
+      const data = await response.json();
+      console.log('Health check data:', data);
+
       if (response.ok) {
+        console.log('Backend is healthy, setting status to connected');
         setConnectionStatus('connected');
+        // Try to start a conversation if we don't have one
+        if (!conversationId) {
+          console.log('No conversation ID, starting new conversation');
+          await startNewConversation();
+        }
       } else {
-        throw new Error('Health check failed');
+        throw new Error(`Health check failed: ${response.status}`);
       }
     } catch (error) {
       console.error('Connection error:', error);
@@ -74,13 +86,16 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
       try {
         console.log(`Conversation start attempt ${attempts + 1}/${maxAttempts}`);
 
-        // Direct fetch instead of using client to debug
+        // Direct fetch with correct payload format for our backend
         const response = await fetch('http://127.0.0.1:8001/api/v1/interface/conversations/start', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({}),
+          body: JSON.stringify({
+            user_id: 'main_interface_user',
+            context: {}
+          }),
         });
 
         console.log('Raw response status:', response.status);
@@ -143,7 +158,10 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
 
   // Simplified sendMessage: send user text to main agent and handle responses
   const sendMessage = async (text: string) => {
-    if (!text.trim() || isLoading || connectionStatus !== 'connected') return;
+    if (!text.trim() || isLoading || connectionStatus !== 'connected' || !conversationId) {
+      console.warn('Cannot send message:', { isLoading, connectionStatus, hasConversationId: !!conversationId });
+      return;
+    }
 
     const userMsg: Message = {
       role: 'user',
@@ -156,34 +174,59 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE}/chat`, {
+      // Use the correct backend API endpoint and payload
+      const response = await fetch(`${API_BASE}${API_PREFIX}/conversations/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          message: text,
+          message_type: 'USER_MESSAGE'
+        })
       });
 
-      if (!response.ok) throw new Error('Chat request failed');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to send message`);
+      }
 
       const data = await response.json();
-      const agentMsg: Message = {
-        role: 'agent',
-        content: data.message,
-        timestamp: new Date().toISOString(),
-        agent_source: data.agent_info?.agent,
-        data: data.visualization
-      };
+      console.log('Backend response:', data);
 
-      setMessages(prev => [...prev, agentMsg]);
+      if (data.success && data.messages) {
+        // Find the latest assistant response from all messages
+        const assistantMessages = data.messages.filter((msg: any) => msg.role === 'assistant');
+        const latestAssistant = assistantMessages[assistantMessages.length - 1];
 
-      if (data.visualization && onVisualizationUpdate) {
-        onVisualizationUpdate(data.visualization);
+        if (latestAssistant && latestAssistant.content) {
+          const agentMsg: Message = {
+            role: 'agent',
+            content: latestAssistant.content,
+            timestamp: latestAssistant.timestamp || new Date().toISOString(),
+            agent_source: 'main_interface'
+          };
+          setMessages(prev => [...prev, agentMsg]);
+        } else {
+          // Fallback if no valid assistant message
+          const errorMsg: Message = {
+            role: 'agent',
+            content: '🤖 I received your message but encountered an issue generating a response. Please try again or rephrase your request.',
+            timestamp: new Date().toISOString(),
+            agent_source: 'error'
+          };
+          setMessages(prev => [...prev, errorMsg]);
+        }
+      } else {
+        throw new Error(data.error || 'Failed to process message');
       }
+
     } catch (error) {
       console.error('Message error:', error);
+      const errorContent = error instanceof Error ? error.message : 'Unknown error';
       setMessages(prev => [...prev, {
         role: 'agent',
-        content: 'Failed to send message. Please check if the backend server is running.',
-        timestamp: new Date().toISOString()
+        content: `❌ **Connection Error**\n\nI'm having trouble connecting to the backend service.\n\nError: ${errorContent}\n\nPlease check if the backend server is running.`,
+        timestamp: new Date().toISOString(),
+        agent_source: 'error'
       }]);
       setConnectionStatus('error');
       checkConnection();

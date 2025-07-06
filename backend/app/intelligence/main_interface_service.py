@@ -13,17 +13,11 @@ import os
 from typing import Dict, List, Optional
 from datetime import datetime
 
-# Add the main interface agent to the path
-agent_path = os.path.join(os.path.dirname(__file__), '..', '..', 'plans', 
-                          'feature-2025010301-main-interface-agent', 'implementation')
-sys.path.insert(0, agent_path)
-
-from main_interface_agent import (
-    MainInterfaceAgent,
-    RequestType,
-    Priority,
-    ConversationState,
-    create_main_interface_agent
+from .main_interface_agent import (
+    MainInterfaceAgentSystem,
+    CentralBrainState,
+    DispatcherState,
+    ConversationState
 )
 
 logger = logging.getLogger(__name__)

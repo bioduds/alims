@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional
 import logging
 
-from main_interface_service import (
+from .main_interface_service import (
     get_lims_interface_service,
     start_lims_conversation,
     send_lims_message,
