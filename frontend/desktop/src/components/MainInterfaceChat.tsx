@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '../utils/cn';
+import MarkdownRenderer from './MarkdownRenderer';
 
 // Types
 interface VisualizationData {
@@ -24,6 +25,42 @@ interface Message {
   ui_component?: string;
   workflow_action?: string;
   data?: any;
+  stage_data?: StageData;
+}
+
+interface StageData {
+  current_stage: string;
+  stage_info: {
+    title: string;
+    description: string;
+    icon: string;
+    color: string;
+  };
+  progress: number;
+  sample_status: Array<{
+    id: string;
+    status: string;
+    priority: string;
+    location: string;
+  }>;
+  available_actions: Array<{
+    id: string;
+    label: string;
+    description: string;
+    enabled: boolean;
+  }>;
+  next_steps: string[];
+  tla_validation: Record<string, {
+    status: string;
+    message: string;
+    confidence: number;
+  }>;
+  visual_elements: any;
+  alerts: Array<{
+    type: string;
+    title: string;
+    message: string;
+  }>;
 }
 
 export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
@@ -51,7 +88,14 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
   const checkConnection = async () => {
     console.log('Checking connection to backend...');
     try {
-      const response = await fetch(`${API_BASE}/health`);
+      const response = await fetch(`${API_BASE}/health`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        mode: 'cors',
+        credentials: 'include'
+      });
       console.log('Health check response:', response.status);
       const data = await response.json();
       console.log('Health check data:', data);
@@ -71,6 +115,9 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
       console.error('Connection error:', error);
       setConnectionStatus('error');
       // Retry connection every 5 seconds
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
       retryTimeoutRef.current = setTimeout(checkConnection, 5000);
     }
   };
@@ -87,11 +134,14 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
         console.log(`Conversation start attempt ${attempts + 1}/${maxAttempts}`);
 
         // Direct fetch with correct payload format for our backend
-        const response = await fetch('http://127.0.0.1:8001/api/v1/interface/conversations/start', {
+        const response = await fetch(`${API_BASE}${API_PREFIX}/conversations/start`, {
           method: 'POST',
           headers: {
+            'Accept': 'application/json',
             'Content-Type': 'application/json',
           },
+          mode: 'cors',
+          credentials: 'include',
           body: JSON.stringify({
             user_id: 'main_interface_user',
             context: {}
@@ -202,9 +252,22 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
             role: 'agent',
             content: latestAssistant.content,
             timestamp: latestAssistant.timestamp || new Date().toISOString(),
-            agent_source: 'main_interface'
+            agent_source: 'main_interface',
+            stage_data: latestAssistant.stage_data
           };
           setMessages(prev => [...prev, agentMsg]);
+
+          // Update stage visualization if stage data is present
+          if (latestAssistant.stage_data && onVisualizationUpdate) {
+            const stageVisualization: VisualizationData = {
+              type: 'system_dashboard',
+              title: `Laboratory Stage: ${latestAssistant.stage_data.stage_info?.title || 'Unknown'}`,
+              data: latestAssistant.stage_data,
+              realTimeData: true,
+              updateInterval: 5000
+            };
+            onVisualizationUpdate(stageVisualization);
+          }
         } else {
           // Fallback if no valid assistant message
           const errorMsg: Message = {
@@ -241,32 +304,26 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
     startNewConversation();
   };
 
-  // Helper to render message content with special formatting
+  // Helper to render message content with beautiful markdown formatting
   const renderMessageContent = (msg: Message) => {
-    let content = msg.content;
+    const { content } = msg;
     
     // Handle special content types
     if (msg.data?.type === 'visualization') {
-      content = `[Visualization: ${msg.data.title || 'Untitled'}]`;
       if (onVisualizationUpdate) {
         onVisualizationUpdate(msg.data);
       }
+      return (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-2">
+          <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+            <span>📊</span>
+            <span className="font-medium">Visualization: {msg.data.title || 'Lab Analysis'}</span>
+          </div>
+        </div>
+      );
     }
     
-    // Convert markdown-style code blocks to HTML
-    content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => (
-      `<pre class="bg-gray-900 p-2 rounded mt-2 mb-2 text-sm overflow-x-auto">
-        <code>${code.trim()}</code>
-      </pre>`
-    ));
-    
-    // Convert inline code
-    content = content.replace(/`([^`]+)`/g, '<code class="bg-gray-900 px-1 rounded">$1</code>');
-    
-    // Convert bullet points
-    content = content.replace(/^[•\-*]\s(.+)$/gm, '• $1');
-    
-    return <div dangerouslySetInnerHTML={{ __html: content }} />;
+    return <MarkdownRenderer content={content} />;
   };
 
   // Handle Enter key in textarea

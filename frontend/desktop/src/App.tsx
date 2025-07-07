@@ -3,6 +3,7 @@ import "./index.css";
 import SystemStatsDashboard from "./components/SystemStatsDashboard";
 import VisualizationEngine from "./components/VisualizationEngine";
 import MainInterfaceChat from "./components/MainInterfaceChat";
+import StageVisualization from "./components/StageVisualization";
 import { TLAStateProvider, useTLAState } from "./hooks/useTLAValidation";
 
 // Types
@@ -18,6 +19,7 @@ interface VisualizationData {
 
 function AppContent() {
   const [currentVisualization, setCurrentVisualization] = useState<VisualizationData | null>(null);
+  const [currentStageData, setCurrentStageData] = useState<any>(null);
   const { validateStageTransition } = useTLAState();
   const visualizationRef = useRef<HTMLDivElement>(null);
 
@@ -31,9 +33,21 @@ function AppContent() {
     const isValid = validateStageTransition('visualization', { type: viz?.type || null });
     if (isValid) {
       setCurrentVisualization(viz);
+
+      // If this is a stage visualization, extract the stage data
+      if (viz?.type === 'system_dashboard' && viz.data) {
+        setCurrentStageData(viz.data);
+      }
     } else {
       console.warn('TLA+ validation failed for visualization transition');
     }
+  };
+
+  // Handle stage action clicks
+  const handleStageActionClick = (actionId: string) => {
+    console.log('Stage action clicked:', actionId);
+    // Here you could send the action back to the chat or API
+    // For now, just log it
   };
 
   const renderVisualization = (viz: VisualizationData) => {
@@ -152,7 +166,14 @@ function AppContent() {
         {/* Main visualization area */}
         <div className="flex-1 p-6 overflow-auto" ref={visualizationRef}>
           {currentVisualization ? (
-            renderVisualization(currentVisualization)
+            currentVisualization.type === 'system_dashboard' && currentStageData ? (
+              <StageVisualization
+                stageData={currentStageData}
+                onActionClick={handleStageActionClick}
+              />
+            ) : (
+                renderVisualization(currentVisualization)
+              )
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center max-w-md">
