@@ -60,7 +60,7 @@ async def root():
         "architecture": "TLA+ validated",
         "features": [
             "Formal verification guarantees",
-            "Prolog-style logical reasoning",
+            "PredicateLogic-style logical reasoning",
             "Robust error handling and recovery",
             "Comprehensive audit trails",
             "Resource monitoring and optimization"

@@ -199,7 +199,7 @@ async def query_knowledge_base(
     request: KnowledgeQueryRequest,
     service: EnhancedLIMSMainInterfaceService = Depends(get_service)
 ):
-    """Query the LIMS knowledge base using Prolog reasoning."""
+    """Query the LIMS knowledge base using PredicateLogic reasoning."""
     try:
         start_time = asyncio.get_event_loop().time()
         
@@ -335,7 +335,7 @@ async def get_knowledge_facts(
             raise HTTPException(status_code=503, detail="Agent system not available")
         
         facts = []
-        for entry in service.agent_system.prolog_engine.knowledge_base.values():
+        for entry in service.agent_system.predicate_logic_engine.knowledge_base.values():
             if entry.type == "FACT":
                 facts.append({
                     "id": entry.id,
@@ -359,7 +359,7 @@ async def get_knowledge_rules(
             raise HTTPException(status_code=503, detail="Agent system not available")
         
         rules = []
-        for entry in service.agent_system.prolog_engine.knowledge_base.values():
+        for entry in service.agent_system.predicate_logic_engine.knowledge_base.values():
             if entry.type == "RULE":
                 rules.append({
                     "id": entry.id,

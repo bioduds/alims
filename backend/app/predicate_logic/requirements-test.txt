@@ -1,0 +1,26 @@
+# Property-Based Testing Requirements for PredicateLogic Engine
+# Based on TLA+ verified properties from 45M+ state exploration
+
+# Core testing framework
+hypothesis>=6.100.0
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-benchmark>=4.0.0
+pytest-asyncio>=0.21.0
+
+# Data generation and validation
+pydantic>=2.0.0
+typing-extensions>=4.7.0
+
+# Performance and monitoring
+psutil>=5.9.0
+memory-profiler>=0.61.0
+
+# Development dependencies
+black>=23.0.0
+isort>=5.12.0
+mypy>=1.5.0
+ruff>=0.0.280
+
+# ALIMS specific
+fastapi>=0.100.0  # For API integration

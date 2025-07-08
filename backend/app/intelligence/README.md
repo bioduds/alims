@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the implementation of the Enhanced Main Interface Agent System for ALIMS (Adaptive Laboratory Information Management System). The system is based on a formally verified TLA+ model and provides robust, production-ready agent orchestration with Prolog-style logical reasoning.
+This document describes the implementation of the Enhanced Main Interface Agent System for ALIMS (Adaptive Laboratory Information Management System). The system is based on a formally verified TLA+ model and provides robust, production-ready agent orchestration with PredicateLogic-style logical reasoning.
 
 ## Architecture
 
@@ -11,7 +11,7 @@ This document describes the implementation of the Enhanced Main Interface Agent 
 1. **MainInterfaceAgent** (`main_interface_agent.py`)
    - Central orchestrator implementing the TLA+ model
    - Manages conversation lifecycle and agent coordination
-   - Provides Prolog reasoning engine for intelligent decision making
+   - Provides PredicateLogic reasoning engine for intelligent decision making
    - Handles resource monitoring and audit trails
 
 2. **EnhancedLIMSMainInterfaceService** (`enhanced_main_interface_service.py`)
@@ -38,7 +38,8 @@ This document describes the implementation of the Enhanced Main Interface Agent 
 - Ensures liveness properties (progress, termination)
 - Provides formal invariants for system correctness
 
-### Prolog Reasoning Engine
+### PredicateLogic Reasoning Engine
+
 - Built-in logical reasoning capabilities
 - Support for facts and rules
 - Unification-based query resolution
@@ -91,7 +92,7 @@ python backend/app/intelligence/enhanced_main_interface_api.py --host 0.0.0.0 --
 config = {
     'max_conversations': 100,      # Maximum concurrent conversations
     'max_agents': 20,              # Maximum number of agents
-    'max_queries': 500,            # Maximum concurrent Prolog queries
+    'max_queries': 500,            # Maximum concurrent PredicateLogic queries
     'query_timeout': 30.0,         # Query timeout in seconds
     'agent_timeout': 60.0,         # Agent timeout in seconds
     'enable_audit': True,          # Enable audit logging
@@ -217,7 +218,7 @@ python enhanced_agent_demo.py
 3. **Knowledge Base Queries Failing**
    - Verify predicate and argument format
    - Check knowledge base contents
-   - Review Prolog engine logs
+   - Review PredicateLogic engine logs
 
 ### Debug Commands
 ```bash
@@ -247,7 +248,7 @@ await agent_system.dispatcher.register_agent(
 
 2. Add knowledge base rules:
 ```python
-await agent_system.prolog_engine.add_rule(
+await agent_system.predicate_logic_engine.add_rule(
     "new_rule",
     ["Param1", "Param2"],
     [{"predicate": "condition", "args": ["Param1"]}]
@@ -258,10 +259,10 @@ await agent_system.prolog_engine.add_rule(
 Add domain-specific facts and rules:
 ```python
 # Add facts
-await prolog_engine.add_fact("instrument_available", ["HPLC_001"])
+await predicate_logic_engine.add_fact("instrument_available", ["HPLC_001"])
 
 # Add rules
-await prolog_engine.add_rule(
+await predicate_logic_engine.add_rule(
     "analysis_possible",
     ["Sample", "Instrument"],
     [

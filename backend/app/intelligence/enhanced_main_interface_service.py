@@ -52,7 +52,7 @@ class EnhancedLIMSMainInterfaceService:
             system_config = SystemConfiguration(
                 MAX_CONVERSATIONS=self.config.get('max_conversations', 100),
                 MAX_AGENTS=self.config.get('max_agents', 20),
-                MAX_PROLOG_DEPTH=self.config.get('max_queries', 200),
+                MAX_PREDICATE_LOGIC_DEPTH=self.config.get('max_queries', 200),
                 TIMEOUT_THRESHOLD=self.config.get('query_timeout', 30),
                 MAX_RETRIES=self.config.get('agent_timeout', 60)
             )
@@ -152,10 +152,10 @@ class EnhancedLIMSMainInterfaceService:
         logger.info("LIMS agents registered successfully")
     
     async def _initialize_lims_knowledge_base(self):
-        """Initialize the Prolog knowledge base with LIMS-specific rules and facts."""
+        """Initialize the PredicateLogic knowledge base with LIMS-specific rules and facts."""
         
         # Sample lifecycle rules
-        await self.agent_system.prolog_engine.add_rule(
+        await self.agent_system.predicate_logic_engine.add_rule(
             "sample_ready_for_testing",
             ["Sample", "Test"],
             [
@@ -166,7 +166,7 @@ class EnhancedLIMSMainInterfaceService:
         )
         
         # Workflow completion rules
-        await self.agent_system.prolog_engine.add_rule(
+        await self.agent_system.predicate_logic_engine.add_rule(
             "workflow_complete",
             ["Workflow"],
             [
@@ -177,7 +177,7 @@ class EnhancedLIMSMainInterfaceService:
         )
         
         # Quality control rules
-        await self.agent_system.prolog_engine.add_rule(
+        await self.agent_system.predicate_logic_engine.add_rule(
             "quality_control_required",
             ["Sample", "Test"],
             [
@@ -187,7 +187,7 @@ class EnhancedLIMSMainInterfaceService:
         )
         
         # Compliance verification rules
-        await self.agent_system.prolog_engine.add_rule(
+        await self.agent_system.predicate_logic_engine.add_rule(
             "compliance_verified",
             ["Process"],
             [
@@ -198,11 +198,11 @@ class EnhancedLIMSMainInterfaceService:
         )
         
         # Add some initial facts
-        await self.agent_system.prolog_engine.add_fact("test_available", ["HPLC"])
-        await self.agent_system.prolog_engine.add_fact("test_available", ["GC_MS"])
-        await self.agent_system.prolog_engine.add_fact("test_available", ["UV_VIS"])
-        await self.agent_system.prolog_engine.add_fact("critical_test", ["HPLC"])
-        await self.agent_system.prolog_engine.add_fact("critical_test", ["GC_MS"])
+        await self.agent_system.predicate_logic_engine.add_fact("test_available", ["HPLC"])
+        await self.agent_system.predicate_logic_engine.add_fact("test_available", ["GC_MS"])
+        await self.agent_system.predicate_logic_engine.add_fact("test_available", ["UV_VIS"])
+        await self.agent_system.predicate_logic_engine.add_fact("critical_test", ["HPLC"])
+        await self.agent_system.predicate_logic_engine.add_fact("critical_test", ["GC_MS"])
         
         logger.info("LIMS knowledge base initialized")
     
@@ -329,7 +329,7 @@ class EnhancedLIMSMainInterfaceService:
     
     async def query_knowledge_base(self, predicate: str, args: List[str], 
                                   conversation_id: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Query the LIMS knowledge base using Prolog reasoning."""
+        """Query the LIMS knowledge base using PredicateLogic reasoning."""
         if not self._initialized or not self.agent_system:
             raise RuntimeError("Service not initialized")
         
@@ -342,7 +342,7 @@ class EnhancedLIMSMainInterfaceService:
         else:
             conv_id = conversation_id
         
-        query_id = await self.agent_system.submit_prolog_query(conv_id, predicate, args)
+        query_id = await self.agent_system.submit_predicate_logic_query(conv_id, predicate, args)
         
         # Wait for query completion
         max_wait = 10.0
@@ -374,7 +374,7 @@ class EnhancedLIMSMainInterfaceService:
                 }
                 for agent_id, agent in self.agent_system.dispatcher.agents.items()
             },
-            "knowledge_base_size": len(self.agent_system.prolog_engine.knowledge_base),
+            "knowledge_base_size": len(self.agent_system.predicate_logic_engine.knowledge_base),
             "background_tasks": len(self._background_tasks)
         })
         

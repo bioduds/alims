@@ -5,15 +5,29 @@ Based on the validated TLA+ model and natural language specification.
 This module implements the core Main Interface Agent with:
 - Central Brain orchestrator
 - Agent Dispatcher with capability-based routing
-- Prolog Reasoning Engine
+- PredicateLogic Reasoning Engine
 - Conversation Manager
 - Resource Monitor
 """
 
 import asyncio
-import logging
-import time
-import uuid
+import log        """Initialize knowledge base with facts and rules from TLA+ model"""
+# Add facts about agent capabilities
+self.predicate_logic_engine.add_knowledge(KnowledgeBaseEntry(
+    id=1,
+    type="FACT",
+    predicate="has_capability",
+    args=["sample_tracker", "sample_analysis"]
+))
+
+self.predicate_logic_engine.add_knowledge(KnowledgeBaseEntry(
+    id=2,
+    type="FACT",
+    predicate="has_capability",
+    args=["workflow_manager", "workflow_control"]
+))
+
+self.predicate_logic_engine.add_knowledge(KnowledgeBaseEntry(import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Set, Any, Tuple
@@ -30,7 +44,7 @@ class CentralBrainState(Enum):
     INITIALIZING = "INITIALIZING"
     READY = "READY"
     ORCHESTRATING = "ORCHESTRATING"
-    PROLOG_INFERENCE = "PROLOG_INFERENCE"
+    PREDICATE_LOGIC_INFERENCE="PREDICATE_LOGIC_INFERENCE"
     ERROR_RECOVERY = "ERROR_RECOVERY"
 
 
@@ -61,7 +75,7 @@ class AgentState(Enum):
 
 
 class QueryState(Enum):
-    """Prolog query states"""
+    """PredicateLogic query states"""
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
     SUCCESS = "SUCCESS"
@@ -74,14 +88,14 @@ class SystemConfiguration:
     """System configuration matching ProductionReadyAgent.cfg"""
     MAX_CONVERSATIONS: int = 2
     MAX_AGENTS: int = 3
-    MAX_PROLOG_DEPTH: int = 3
+    MAX_PREDICATE_LOGIC_DEPTH: int=3
     MAX_KNOWLEDGE_BASE_SIZE: int = 10
     TIMEOUT_THRESHOLD: int = 5
     MAX_RETRIES: int = 2
     AGENT_CAPABILITIES: Set[str] = field(default_factory=lambda: {
         "sample_analysis", "workflow_control", "logical_reasoning"
     })
-    PROLOG_PREDICATES: Set[str] = field(default_factory=lambda: {
+    PREDICATE_LOGIC_PREDICATES: Set[str]=field(default_factory=lambda: {
         "has_capability", "suitable_agent", "requires_capability"
     })
 
@@ -111,7 +125,7 @@ class AgentRecord:
 
 @dataclass
 class QueryRecord:
-    """Prolog query record structure"""
+    """PredicateLogic query record structure"""
     id: str
     conversation_id: str
     predicate: str
@@ -124,7 +138,7 @@ class QueryRecord:
 
 @dataclass
 class KnowledgeBaseEntry:
-    """Knowledge base entry for Prolog facts and rules"""
+    """Knowledge base entry for PredicateLogic facts and rules"""
     id: int
     type: str  # "FACT" or "RULE"
     predicate: str
@@ -152,8 +166,8 @@ class SystemMetrics:
     timeouts: int = 0
 
 
-class PrologReasoningEngine:
-    """Prolog-style reasoning engine for logical inference"""
+            class PredicateLogicReasoningEngine:
+    """PredicateLogic-style reasoning engine for logical inference"""
     
     def __init__(self):
         self.knowledge_base: Dict[int, KnowledgeBaseEntry] = {}
@@ -191,7 +205,7 @@ class PrologReasoningEngine:
         return self.add_knowledge(entry)
     
     def query(self, predicate: str, args: List[str]) -> Tuple[bool, List[Dict[str, Any]]]:
-        """Execute a Prolog-style query"""
+        """Execute a PredicateLogic-style query"""
         logger.info(f"Executing query: {predicate}({', '.join(args)})")
         
         # Search for matching facts
@@ -356,7 +370,7 @@ class MainInterfaceAgent:
         
         # Component initialization
         self.dispatcher = AgentDispatcher(self.config)
-        self.prolog_engine = PrologReasoningEngine()
+        self.predicate_logic_engine=PredicateLogicReasoningEngine()
         
         # System data structures
         self.conversations: Dict[str, ConversationRecord] = {}
@@ -412,7 +426,7 @@ class MainInterfaceAgent:
             # Log initialization
             self._add_audit_event("SYSTEM_INITIALIZED", details={
                 "agents_count": len(self.dispatcher.agents),
-                "knowledge_base_size": len(self.prolog_engine.knowledge_base)
+                "knowledge_base_size": len(self.predicate_logic_engine.knowledge_base)
             })
             
             logger.info("System initialization complete - READY state")
@@ -486,10 +500,9 @@ class MainInterfaceAgent:
             return True
         
         return False
-    
-    async def start_prolog_query(self, conversation_id: str, predicate: str, 
-                               args: List[str]) -> str:
-        """Start Prolog query following TLA+ specification"""
+            async def start_predicate_logic_query(self, conversation_id: str, predicate: str,
+                                                  args: List[str]) -> str:
+        """Start PredicateLogic query following TLA+ specification"""
         if conversation_id not in self.conversations:
             raise ValueError("Conversation not found")
         
@@ -505,7 +518,7 @@ class MainInterfaceAgent:
         
         self.active_queries[query_id] = query
         self.conversations[conversation_id].state = ConversationState.LOGICAL_REASONING
-        self.central_brain_state = CentralBrainState.PROLOG_INFERENCE
+        self.central_brain_state=CentralBrainState.PREDICATE_LOGIC_INFERENCE
         
         # Update metrics
         self.system_metrics.queries += 1
@@ -515,11 +528,12 @@ class MainInterfaceAgent:
                             query_id=query_id,
                             details={"predicate": predicate, "args": args})
         
-        logger.info(f"Started Prolog query {query_id}: {predicate}({', '.join(args)})")
+        logger.info(
+            f"Started PredicateLogic query {query_id}: {predicate}({', '.join(args)})")
         return query_id
     
     async def process_inference(self, query_id: str) -> bool:
-        """Process Prolog inference following TLA+ specification"""
+        """Process PredicateLogic inference following TLA+ specification"""
         if query_id not in self.active_queries:
             return False
         
@@ -528,8 +542,9 @@ class MainInterfaceAgent:
             return False
         
         try:
-            # Execute Prolog query
-            success, results = self.prolog_engine.query(query.predicate, query.args)
+            # Execute PredicateLogic query
+            success, results=self.predicate_logic_engine.query(
+                query.predicate, query.args)
             
             if success:
                 query.state = QueryState.SUCCESS
@@ -693,9 +708,9 @@ class MainInterfaceAgent:
             "conversation_id": conversation_id
         }
     
-    async def submit_prolog_query(self, conversation_id: str, predicate: str, args: List[str]) -> str:
-        """Submit a Prolog query and return query ID"""
-        return await self.start_prolog_query(conversation_id, predicate, args)
+    async def submit_predicate_logic_query(self, conversation_id: str, predicate: str, args: List[str]) -> str:
+        """Submit a PredicateLogic query and return query ID"""
+        return await self.start_predicate_logic_query(conversation_id, predicate, args)
     
     async def shutdown(self) -> None:
         """Shutdown the agent system"""
@@ -749,7 +764,7 @@ async def main():
     await agent_system.assign_agent_to_conversation(conversation_id, "sample_analysis")
     
     # Start logical reasoning
-    query_id = await agent_system.start_prolog_query(
+    query_id=await agent_system.start_predicate_logic_query(
         conversation_id, 
         "suitable_agent", 
         ["sample_tracker", "blood_sample_analysis"]

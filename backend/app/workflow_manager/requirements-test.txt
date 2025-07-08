@@ -1,0 +1,43 @@
+# Workflow Manager Service - Testing Requirements
+
+# Core testing framework
+hypothesis==6.104.2
+pytest==7.4.4
+pytest-asyncio==0.23.6
+pytest-cov==4.1.0
+
+# Property-based testing
+hypothesis-auto==1.1.4
+
+# Async and concurrency testing  
+pytest-timeout==2.3.1
+pytest-xdist==3.5.0
+
+# FastAPI testing
+httpx==0.27.0
+starlette==0.37.2
+
+# Testing utilities
+factory-boy==3.3.0
+faker==24.4.0
+
+# Mock and fixtures
+pytest-mock==3.12.0
+responses==0.25.0
+
+# Performance testing
+pytest-benchmark==4.0.0
+
+# Docker testing (for integration)
+testcontainers==4.4.0
+
+# Type checking in tests
+mypy==1.9.0
+
+# Code quality
+flake8==7.0.0
+black==24.3.0
+
+# Test reporting
+pytest-html==4.1.1
+coverage==7.4.4

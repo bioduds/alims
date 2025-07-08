@@ -112,7 +112,7 @@ async def start_conversation(request: ConversationRequest):
 @router.post("/conversations/{conversation_id}/queries", response_model=QueryResponse)
 async def start_query(conversation_id: str, request: QueryRequest):
     """
-    Start a Prolog-style logical reasoning query
+    Start a PredicateLogic-style logical reasoning query
     
     Based on TLA+ specification:
     - Creates query record
@@ -122,8 +122,8 @@ async def start_query(conversation_id: str, request: QueryRequest):
     try:
         system = await initialize_agent_system()
         
-        # Start Prolog query
-        query_id = await system.start_prolog_query(
+        # Start PredicateLogic query
+        query_id = await system.start_predicate_logic_query(
             conversation_id,
             request.predicate,
             request.args
@@ -254,7 +254,7 @@ async def get_knowledge_base():
         system = await initialize_agent_system()
         
         knowledge_entries = []
-        for entry in system.prolog_engine.knowledge_base.values():
+        for entry in system.predicate_logic_engine.knowledge_base.values():
             knowledge_entries.append({
                 "id": entry.id,
                 "type": entry.type,
@@ -370,7 +370,7 @@ async def _process_intelligent_message(system: MainInterfaceAgent,
     # Simple intent detection for demonstration
     if "analyze" in message.lower() and "sample" in message.lower():
         # Query for suitable agent
-        query_id = await system.start_prolog_query(
+        query_id = await system.start_predicate_logic_query(
             conversation_id,
             "suitable_agent",
             ["?Agent", "sample_analysis_task"]
