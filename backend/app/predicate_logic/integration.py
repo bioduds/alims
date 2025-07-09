@@ -10,8 +10,8 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 import logging
 
-from .core import PredicateLogicEngine, EngineConfiguration
-from .models import (
+from core import PredicateLogicEngine, EngineConfiguration
+from models import (
     Rule, Fact, Evaluation, RuleState, EvaluationState, FactType,
     ConditionOperator, RuleCondition, RuleAction,
     TLAPropertyViolationError

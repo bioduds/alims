@@ -1,0 +1,207 @@
+# ALIMS Docker Compose Development Environment
+# Based on ALIMS System Improvement Plan Phase 1.2
+
+version: '3.8'
+
+services:
+  # ===== BACKEND SERVICES =====
+  
+  api-gateway:
+    build: ./backend/app/api_gateway
+    container_name: alims-api-gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+      - workflow-manager
+      - predicate-logic-engine
+    environment:
+      - DATABASE_URL=postgresql://alims:${DB_PASSWORD:-alimsdev}@postgres:5432/alims
+      - REDIS_URL=redis://redis:6379
+      - WORKFLOW_SERVICE_URL=http://workflow-manager:8002
+      - PREDICATE_LOGIC_SERVICE_URL=http://predicate-logic-engine:8001
+      - LOG_LEVEL=INFO
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  workflow-manager:
+    build: ./backend/app/workflow_manager
+    container_name: alims-workflow-manager
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres
+      - redis
+      - predicate-logic-engine
+    environment:
+      - DATABASE_URL=postgresql://alims:${DB_PASSWORD:-alimsdev}@postgres:5432/alims
+      - REDIS_URL=redis://redis:6379
+      - PREDICATE_LOGIC_SERVICE_URL=http://predicate-logic-engine:8001
+      - LOG_LEVEL=INFO
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  predicate-logic-engine:
+    build: ./backend/app/predicate_logic
+    container_name: alims-predicate-logic-engine
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://alims:${DB_PASSWORD:-alimsdev}@postgres:5432/alims
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=INFO
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  # ===== INFRASTRUCTURE SERVICES =====
+  
+  postgres:
+    image: postgres:15
+    container_name: alims-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=alims
+      - POSTGRES_USER=alims
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-alimsdev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: alims-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  vector-db:
+    image: qdrant/qdrant:latest
+    container_name: alims-vector-db
+    ports:
+      - "6333:6333"
+    volumes:
+      - vector_data:/qdrant/storage
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  # ===== MONITORING & LOGGING =====
+  
+  elasticsearch:
+    image: elasticsearch:8.8.0
+    container_name: alims-elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  kibana:
+    image: kibana:8.8.0
+    container_name: alims-kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: alims-prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: alims-grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+  # ===== LOAD BALANCER =====
+  
+  nginx:
+    image: nginx:alpine
+    container_name: alims-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api-gateway
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - alims-network
+    restart: unless-stopped
+
+# ===== VOLUMES =====
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  vector_data:
+    driver: local
+  elastic_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# ===== NETWORKS =====
+networks:
+  alims-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

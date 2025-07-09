@@ -24,9 +24,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
 import uvicorn
 
-from .core import WorkflowManagerCore
-from .models import (
-    WorkflowState, WorkflowEvent, WorkflowStates, EventTypes,
+from core import WorkflowManagerCore
+from models import (
+    WorkflowState, WorkflowEvent, WorkflowState, EventTypes,
     TLAPropertyViolation, WorkflowNotFoundError, 
     InvalidTransitionError, OptimisticLockError
 )
@@ -81,7 +81,8 @@ class CreateWorkflowRequest(BaseModel):
 
 class TransitionRequest(BaseModel):
     """Request model for workflow state transitions"""
-    target_state: WorkflowStates = Field(..., description="Target workflow state")
+    target_state: WorkflowState = Field(...,
+                                        description="Target workflow state")
     expected_version: int = Field(..., description="Expected workflow version for optimistic locking")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Transition metadata")
     
@@ -94,8 +95,8 @@ class TransitionRequest(BaseModel):
 class WorkflowResponse(BaseModel):
     """Response model for workflow operations"""
     workflow_id: str
-    state: WorkflowStates
-    previous_state: Optional[WorkflowStates]
+    state: WorkflowState
+    previous_state: Optional[WorkflowState]
     version: int
     created_at: datetime
     updated_at: datetime
@@ -107,8 +108,8 @@ class EventResponse(BaseModel):
     event_id: int
     workflow_id: str
     event_type: EventTypes
-    from_state: Optional[WorkflowStates]
-    to_state: WorkflowStates
+    from_state: Optional[WorkflowState]
+    to_state: WorkflowState
     timestamp: datetime
     retry_count: int
 
@@ -322,7 +323,7 @@ async def transition_workflow(
 
 @app.get("/workflows", response_model=List[WorkflowResponse], tags=["Workflows"])
 async def list_workflows(
-    state: Optional[WorkflowStates] = None,
+    state: Optional[WorkflowState] = None,
     limit: int = 100,
     offset: int = 0,
     wm: WorkflowManagerCore = Depends(get_workflow_manager)

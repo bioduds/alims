@@ -5,6 +5,12 @@ This module provides configuration management and integration
 with the ALIMS system following TLA+ verified patterns.
 """
 
+from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Depends
+import tempfile
+import os
+import asyncio
+from core import APIGateway, ServiceState
 import yaml
 from typing import Dict, List, Optional
 from dataclasses import dataclass
@@ -121,10 +127,6 @@ def create_default_config(config_path: str):
 
 
 # FastAPI integration for ALIMS
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import JSONResponse
-import asyncio
-from .core import APIGateway, ServiceState
 
 
 class ALIMSAPIGatewayIntegration:
@@ -146,7 +148,7 @@ class ALIMSAPIGatewayIntegration:
         """Initialize gateway with configured services"""
         if self._initialized:
             return
-        
+
         for service_config in self.config.services:
             await self.gateway.add_service(
                 service_id=service_config.id,
@@ -154,13 +156,13 @@ class ALIMSAPIGatewayIntegration:
                 max_load=service_config.max_load,
                 failure_threshold=service_config.failure_threshold
             )
-            
+
             # Start with services in UNKNOWN state (following TLA+ Init)
             await self.gateway.update_service_health(
-                service_config.id, 
+                service_config.id,
                 ServiceState.UNKNOWN
             )
-        
+
         self._initialized = True
 
     def create_fastapi_app(self) -> FastAPI:
@@ -207,7 +209,7 @@ class ALIMSAPIGatewayIntegration:
                 return {"status": "updated", "service_id": service_id, "new_state": state_str}
             except ValueError:
                 raise HTTPException(
-                    status_code=400, 
+                    status_code=400,
                     detail=f"Invalid state: {health_data.get('state')}"
                 )
 
@@ -222,7 +224,8 @@ class ALIMSAPIGatewayIntegration:
             """Get detailed status for specific service"""
             status = self.gateway.get_system_status()
             if service_id not in status["services"]:
-                raise HTTPException(status_code=404, detail=f"Service {service_id} not found")
+                raise HTTPException(
+                    status_code=404, detail=f"Service {service_id} not found")
             return status["services"][service_id]
 
         @app.get("/api/v1/health")
@@ -248,11 +251,11 @@ async def setup_production_gateway(config_path: str) -> ALIMSAPIGatewayIntegrati
     # Load and validate configuration
     config = APIGatewayConfig.from_yaml(config_path)
     config.validate_tla_constraints()
-    
+
     # Create gateway integration
     integration = ALIMSAPIGatewayIntegration(config)
     await integration.initialize()
-    
+
     return integration
 
 
@@ -270,7 +273,7 @@ class HealthMonitor:
     async def start_monitoring(self):
         """Start continuous health monitoring"""
         self._monitoring = True
-        
+
         while self._monitoring:
             await self._check_all_services()
             await asyncio.sleep(self.config.health_check_interval)
@@ -304,7 +307,7 @@ class HealthMonitor:
         #             return ServiceState.HEALTHY
         #         else:
         #             return ServiceState.DEGRADED
-        
+
         # For simulation, return HEALTHY
         return ServiceState.HEALTHY
 
@@ -312,9 +315,19 @@ class HealthMonitor:
 # Export main classes for ALIMS integration
 __all__ = [
     'ServiceConfig',
-    'APIGatewayConfig', 
+    'APIGatewayConfig',
     'ALIMSAPIGatewayIntegration',
     'HealthMonitor',
     'setup_production_gateway',
     'create_default_config'
 ]
+
+# Create the FastAPI app instance for uvicorn
+
+# Create a temporary config for development
+config_path = os.path.join(tempfile.gettempdir(),
+                           "alims_api_gateway_config.yaml")
+create_default_config(config_path)
+gateway_config = APIGatewayConfig.from_yaml(config_path)
+gateway = ALIMSAPIGatewayIntegration(gateway_config)
+app = gateway.create_fastapi_app()
