@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 import logging
 
-from .models import (
+from models import (
     WorkflowModel, WorkflowEvent, StateTransitionRequest, WorkflowState,
     TransitionResult, RecoveryResult, WorkflowStats, PendingOperation,
     OperationType, EventType, VALID_TRANSITIONS, TERMINAL_STATES,
@@ -30,7 +30,7 @@ from .models import (
     WorkflowUniquenessError, BoundedWorkflowsError, TerminalStateImmutabilityError,
     ConcurrentSafetyError, TransitionValidityError
 )
-from .exceptions import (
+from exceptions import (
     WorkflowNotFoundError, InvalidTransitionError, TerminalStateError,
     ConcurrentModificationError, PredicateLogicUnavailableError
 )

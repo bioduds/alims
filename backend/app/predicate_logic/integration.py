@@ -5,6 +5,7 @@ Provides REST API endpoints for rule evaluation and fact management
 with TLA+ verified safety properties enforced at runtime.
 """
 
+from fastapi import FastAPI
 from typing import Dict, List, Optional, Set, Any
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
@@ -421,3 +422,25 @@ async def validate_properties(
 
 # Additional imports for time
 import time
+
+# Create FastAPI app
+
+app = FastAPI(
+    title="PredicateLogic Engine API",
+    description="TLA+ verified predicate logic engine for ALIMS",
+    version="1.0.0"
+)
+
+# Include the router
+app.include_router(router)
+
+# Health check endpoint
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "predicate-logic-engine"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

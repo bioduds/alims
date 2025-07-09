@@ -13,7 +13,7 @@ import threading
 import logging
 from contextlib import contextmanager
 
-from .models import (
+from models import (
     Rule, Fact, Evaluation, PredicateLogicEngineState,
     RuleState, EvaluationState, FactType, ConditionOperator,
     RuleCondition, RuleAction, InferenceAction,

@@ -5,8 +5,8 @@ TLA+ verified rule evaluation and inference engine for ALIMS.
 This package provides mathematically proven safety guarantees.
 """
 
-from .core import PredicateLogicEngine, EngineConfiguration
-from .models import (
+from core import PredicateLogicEngine, EngineConfiguration
+from models import (
     Rule, Fact, Evaluation, 
     RuleState, EvaluationState, FactType, ConditionOperator,
     RuleCondition, RuleAction,

@@ -27,9 +27,9 @@ import sys
 from pathlib import Path
 
 # Import local modules
-from .models import WorkflowModel, WorkflowState, StateTransitionRequest
-from .core import WorkflowManagerCore
-from .exceptions import (
+from models import WorkflowModel, WorkflowState, StateTransitionRequest
+from core import WorkflowManagerCore
+from exceptions import (
     WorkflowNotFoundError, InvalidTransitionError, TerminalStateError,
     ConcurrentModificationError, PredicateLogicUnavailableError
 )

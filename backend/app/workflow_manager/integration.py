@@ -26,9 +26,11 @@ import uvicorn
 
 from core import WorkflowManagerCore
 from models import (
-    WorkflowState, WorkflowEvent, WorkflowState, EventTypes,
-    TLAPropertyViolation, WorkflowNotFoundError, 
-    InvalidTransitionError, OptimisticLockError
+    WorkflowState, WorkflowEvent, WorkflowState, EventType
+)
+from exceptions import (
+    TLAPropertyViolationError, WorkflowNotFoundError,
+    InvalidTransitionError, ConcurrentModificationError
 )
 
 # Configure logging
@@ -45,7 +47,9 @@ async def lifespan(app: FastAPI):
     
     # Startup
     logger.info("Initializing Workflow Manager Service...")
-    workflow_manager = WorkflowManagerCore()
+    # For now, using None as predicate_logic_engine since it's a separate service
+    # In production, this would be a client to the predicate-logic-engine service
+    workflow_manager = WorkflowManagerCore(predicate_logic_engine=None)
     logger.info("Workflow Manager Service initialized successfully")
     
     yield
@@ -107,7 +111,7 @@ class EventResponse(BaseModel):
     """Response model for workflow events"""
     event_id: int
     workflow_id: str
-    event_type: EventTypes
+    event_type: EventType
     from_state: Optional[WorkflowState]
     to_state: WorkflowState
     timestamp: datetime
@@ -152,8 +156,9 @@ async def invalid_transition_handler(request, exc: InvalidTransitionError):
         ).dict()
     )
 
-@app.exception_handler(OptimisticLockError)
-async def optimistic_lock_handler(request, exc: OptimisticLockError):
+
+@app.exception_handler(ConcurrentModificationError)
+async def optimistic_lock_handler(request, exc: ConcurrentModificationError):
     """Handle optimistic locking conflicts"""
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
@@ -163,8 +168,9 @@ async def optimistic_lock_handler(request, exc: OptimisticLockError):
         ).dict()
     )
 
-@app.exception_handler(TLAPropertyViolation)
-async def tla_property_violation_handler(request, exc: TLAPropertyViolation):
+
+@app.exception_handler(TLAPropertyViolationError)
+async def tla_property_violation_handler(request, exc: TLAPropertyViolationError):
     """Handle TLA+ property violations"""
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -314,7 +320,7 @@ async def transition_workflow(
             metadata=workflow.metadata
         )
         
-    except (WorkflowNotFoundError, InvalidTransitionError, OptimisticLockError):
+    except (WorkflowNotFoundError, InvalidTransitionError, ConcurrentModificationError):
         logger.warning(f"Transition failed for workflow {workflow_id}")
         raise
     except Exception as e:
