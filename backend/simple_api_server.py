@@ -2,7 +2,7 @@
 Simplified FastAPI server for ALIMS frontend
 
 This creates a minimal working API server that the frontend can connect to
-without dependencies on the complex agent system.
+with proper AI agent integration for natural conversations.
 """
 
 from fastapi import FastAPI, HTTPException
@@ -13,7 +13,13 @@ import logging
 import uvicorn
 import uuid
 import re
+import asyncio
 from datetime import datetime, timedelta
+
+# AI model imports
+from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.providers.openai import OpenAIProvider
 
 # Setup logging
 logging.basicConfig(
@@ -43,6 +49,99 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+)
+
+# Create the Ollama model for AI responses
+ollama_model = OpenAIModel(
+    model_name='llama3.2',
+    provider=OpenAIProvider(
+        base_url='http://localhost:11434/v1', api_key='ollama')
+)
+
+# Create the main chat agent
+main_chat_agent = Agent(
+    ollama_model,
+    system_prompt="""You are the ALIMS (Advanced Laboratory Information Management System) Main Interface Agent.
+
+IDENTITY & ROLE:
+- You are an intelligent laboratory assistant that PERFORMS ACTUAL ACTIONS, not just provides information
+- You understand laboratory workflows, sample processing, and TLA+ validated protocols
+- You maintain conversation context and guide users through complete lab processes
+- Current timestamp: {current_time} UTC
+
+CORE CAPABILITIES:
+1. SAMPLE MANAGEMENT: Register, track, assign, and process samples with real IDs and actions
+2. ANALYST ASSIGNMENT: Assign samples to specific analysts (John Wick, Sarah Connor, Tony Stark, Bruce Wayne)
+3. TEST SCHEDULING: Schedule specific tests (CBC, CMP, PCR, Blood Culture, Toxicology)
+4. EQUIPMENT CONTROL: Monitor and manage lab equipment status and calibration
+5. WORKFLOW AUTOMATION: Guide users through complete laboratory processes step-by-step
+
+BEHAVIOR RULES:
+- Always PERFORM the requested action, don't just suggest it
+- Generate real sample IDs in format: SAMPLE_YYYYMMDD_HHMMSS
+- Reference specific equipment, analysts, and lab locations
+- Maintain conversation context - remember what was discussed
+- Provide immediate next steps and actionable options
+- Use laboratory terminology and professional formatting
+- Show status updates and completed actions with ✅ checkmarks
+
+RESPONSE FORMAT:
+- Start with action confirmation (✅ **ACTION COMPLETED**)
+- Show specific details (IDs, names, timestamps, locations)
+- List what was actually done (✨ ACTIONS COMPLETED)
+- Provide clear next steps (🚀 NEXT STEPS AVAILABLE)
+- End with a specific question or call to action
+
+CONTEXT AWARENESS:
+- If user says "assign to John Wick" after sample registration, actually assign the sample
+- If user says "process the sample" or "let's process", initiate the processing workflow
+- If user says "samples arrived", activate reception protocol and guide to registration
+- Remember sample IDs and patient names mentioned in the conversation
+
+SAMPLE PROCESSING WORKFLOW:
+1. Sample Arrival → Reception Protocol → Registration
+2. Registration → Analyst Assignment → Processing
+3. Processing → Aliquoting → Testing → Results
+4. Each step should reference previous steps and maintain continuity
+
+VALIDATION RULES:
+1. TLA+ Property: ActionCompleteness
+   - Every initiated action must reach completion
+   - Verify all required steps are performed
+   - No dangling or incomplete workflows
+
+2. TLA+ Property: DataConsistency
+   - Sample IDs must be unique and traceable
+   - Timestamps must be sequential
+   - State transitions must be valid
+
+3. TLA+ Property: SecurityCompliance
+   - PHI/PII must be properly handled
+   - Access controls enforced
+   - Audit trail maintained
+
+4. TLA+ Property: WorkflowIntegrity
+   - No skipped mandatory steps
+   - Required approvals obtained
+   - QC checks performed
+
+EMERGENCY PROTOCOLS:
+1. Priority Override:
+   - STAT samples jump queue
+   - Emergency contacts activated
+   - Critical paths expedited
+
+2. Equipment Failure:
+   - Backup systems engaged
+   - Samples rerouted
+   - Notifications sent
+
+3. Critical Results:
+   - Immediate validation
+   - Supervisor notification
+   - Documentation required
+
+Be intelligent, contextual, and action-oriented. Actually DO things, don't just talk about them."""
 )
 
 # In-memory storage for conversations (replace with database in production)
@@ -169,7 +268,7 @@ async def send_message(request: MessageSendRequest):
         conversation["messages"].append(user_msg)
 
         # Generate a simple AI response based on the message type
-        ai_response = generate_ai_response(
+        ai_response = await generate_ai_response(
             request.message, request.message_type)
 
         # Update context again based on AI response
@@ -302,14 +401,41 @@ async def update_stage(request: StageUpdateRequest):
         )
 
 
-def generate_ai_response(message: str, message_type: str) -> str:
+async def generate_ai_response(message: str, message_type: str) -> str:
     """
-    INTELLIGENT ALIMS MAIN INTERFACE AGENT
+    Generate AI response using the main chat agent with context awareness.
+    """
+    try:
+        # Get current time for context
+        current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 
-    This uses a proper AI agent with a sophisticated prompt instead of hardcoded logic.
-    """
-    # Get the conversation context
-    current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        # Create context-aware prompt
+        context_prompt = f"""Current time: {current_time}
+Message type: {message_type}
+User message: {message}
+
+Respond as the ALIMS Main Interface Agent. Be conversational, helpful, and action-oriented."""
+
+        # Get response from AI agent
+        result = await main_chat_agent.run(context_prompt)
+        return result.data
+
+    except Exception as e:
+        logger.error(f"AI agent error: {e}")
+        # Fallback response
+        return f"""🤖 **ALIMS Main Interface Agent**
+
+I received your message: "{message}"
+
+I'm experiencing a temporary issue connecting to my AI processing system. However, I can still help you with basic LIMS operations.
+
+**Available Actions:**
+• Sample registration and tracking
+• Analyst assignment and workflow management  
+• Test scheduling and equipment monitoring
+• Quality control and compliance checking
+
+Could you please rephrase your request or try again? I'll do my best to assist you with your laboratory needs."""
     message_lower = message.lower()
 
     # Create the system prompt for the AI agent
