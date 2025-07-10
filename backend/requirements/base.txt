@@ -101,8 +101,9 @@ beautifulsoup4>=4.12.0  # Web scraping
 playwright>=1.40.0      # Modern web automation
 
 # Database & Storage
-sqlite3  # Built-in Python
+# Database
 sqlalchemy>=2.0.0
+
 duckdb>=0.9.0  # Fast analytics database
 
 # Configuration & Data Processing
@@ -147,7 +148,7 @@ objgraph>=3.6.0
 
 # Optional: Advanced Features
 faiss-cpu>=1.7.4     # Vector similarity search
-chromadb>=0.4.0      # Vector database for memory
+
 langchain>=0.1.0     # LLM orchestration framework
 
 # ALims - The Self-Creating AI Operating System
