@@ -596,9 +596,9 @@ I'm experiencing a temporary issue connecting to my AI processing system. Howeve
 • Quality control and compliance checking
 
 Could you please rephrase your request or try again? I'll do my best to assist you with your laboratory needs."""
-    message_lower = message.lower()
 
-    # Create the system prompt for the AI agent
+
+def validate_workflow_step(current_step, context):
     system_prompt = f"""You are the ALIMS (Advanced Laboratory Information Management System) Main Interface Agent.
 
 IDENTITY & ROLE:
@@ -1930,6 +1930,11 @@ async def search_memory(request: MemorySearchRequest):
 
         # Format results for API response
         memories = []
+        for result in search_results:
+            memory_dict = {
+                "memory_id": result.memory.id,
+                "content": result.memory.primary_text,
+                "memory_type": result.memory.memory_type.value,
                 "relevance_score": result.relevance_score,
                 "importance": result.memory.importance_score,
                 "tags": result.memory.tags or []
@@ -1947,11 +1952,6 @@ async def search_memory(request: MemorySearchRequest):
             success=True,
             memories=memories
         )
-
-    except Exception as e:
-        logger.error(f"Error searching memories: {e}")
-        return MemorySearchResponse(
-            success=False,
 
     except Exception as e:
         logger.error(f"Error searching memories: {e}")

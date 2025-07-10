@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use tauri::State;
 use std::sync::Mutex;
 use tauri::Manager;
+use reqwest;
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct AnalysisResults {
@@ -106,6 +108,7 @@ struct WorkflowContext {
 
 struct AppState {
     python_path: Mutex<String>,
+    backend_url: Mutex<String>,
 }
 
 #[tauri::command]
@@ -163,102 +166,229 @@ async fn trigger_analysis(state: State<'_, AppState>) -> Result<String, String> 
 
 #[tauri::command]
 async fn start_chat_session(state: State<'_, AppState>) -> Result<String, String> {
-    let python_path = state.python_path.lock().unwrap();
+    eprintln!("🔄 Starting chat session...");
     
-    // Execute Python script to start a chat session
-    let output = Command::new(&*python_path)
-        .arg("-c")
-        .arg(r#"
-import asyncio
-from backend.app.system.system_integration import ALimsSystemIntegration
+    let backend_url = state.backend_url.lock().unwrap().clone();
+    eprintln!("📡 Backend URL: {}", backend_url);
+    
+    // First, test basic connectivity
+    eprintln!("🔍 Testing basic connectivity...");
+    let test_client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| {
+            eprintln!("❌ Failed to create test client: {}", e);
+            format!("Failed to create test client: {}", e)
+        })?;
+    
+    let health_response = test_client
+        .get(&format!("{}/health", backend_url))
+        .send()
+        .await
+        .map_err(|e| {
+            eprintln!("❌ Health check failed: {}", e);
+            format!("Health check failed: {}", e)
+        })?;
+    
+    eprintln!("✅ Health check response: {}", health_response.status());
+    
+    // Create HTTP client with timeout
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| {
+            eprintln!("❌ Failed to create HTTP client: {}", e);
+            format!("Failed to create HTTP client: {}", e)
+        })?;
+    
+    // Create request body
+    let mut body = HashMap::new();
+    body.insert("user_id", "tauri_user");
+    
+    eprintln!("🚀 Making request to start conversation...");
+    
+    // Make HTTP request to start conversation
+    let response = client
+        .post(&format!("{}/api/v1/interface/conversations/start", backend_url))
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| {
+            eprintln!("❌ HTTP request failed: {}", e);
+            format!("Failed to start chat session: {}", e)
+        })?;
 
-async def start_session():
-    system = ALimsSystemIntegration()
-    await system.initialize()
-    result = await system.chat_with_agents("", None)
-    print(result.get("session_id", ""))
+    eprintln!("📥 Response status: {}", response.status());
 
-asyncio.run(start_session())
-        "#)
-        .current_dir("../")
-        .output()
-        .map_err(|e| format!("Failed to start chat session: {}", e))?;
-
-    if !output.status.success() {
-        return Err(format!("Failed to start chat session: {}", String::from_utf8_lossy(&output.stderr)));
+    if !response.status().is_success() {
+        let status_code = response.status();
+        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+        eprintln!("❌ HTTP error response: {}", error_text);
+        return Err(format!("HTTP error: {} - {}", status_code, error_text));
     }
 
-    let session_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    Ok(session_id)
+    // Parse response
+    let response_json: serde_json::Value = response.json().await
+        .map_err(|e| {
+            eprintln!("❌ Failed to parse JSON response: {}", e);
+            format!("Failed to parse response: {}", e)
+        })?;
+
+    eprintln!("📦 Response JSON: {}", response_json);
+
+    if let Some(conversation_id) = response_json.get("conversation_id") {
+        if let Some(id_str) = conversation_id.as_str() {
+            eprintln!("✅ Chat session started successfully: {}", id_str);
+            return Ok(id_str.to_string());
+        }
+    }
+
+    eprintln!("❌ No conversation_id found in response");
+    Err("No conversation_id in response".to_string())
 }
 
 #[tauri::command]
 async fn send_chat_message(state: State<'_, AppState>, message: String, session_id: String) -> Result<ChatResponse, String> {
-    let python_path = state.python_path.lock().unwrap();
+    println!("💬 Sending chat message: {} (session: {})", message, session_id);
     
-    // Execute Python script to send a chat message
-    let output = Command::new(&*python_path)
-        .arg("-c")
-        .arg(format!(r#"
-import asyncio
-import json
-from backend.app.system.system_integration import ALimsSystemIntegration
+    let backend_url = state.backend_url.lock().unwrap().clone();
+    println!("📡 Backend URL: {}", backend_url);
+    
+    // Create HTTP client with timeout
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+    
+    // Create request body
+    let mut body = HashMap::new();
+    body.insert("conversation_id", session_id.clone());
+    body.insert("message", message.clone());
+    body.insert("message_type", "SAMPLE_INQUIRY".to_string());
+    
+    println!("🚀 Making request to send message...");
+    
+    // Make HTTP request to send message
+    let response = client
+        .post(&format!("{}/api/v1/interface/conversations/message", backend_url))
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| {
+            println!("❌ HTTP request failed: {}", e);
+            format!("Failed to send message: {}", e)
+        })?;
 
-async def send_message():
-    system = ALimsSystemIntegration()
-    await system.initialize()
-    result = await system.chat_with_agents("{}", "{}")
-    print(json.dumps(result))
+    println!("📥 Response status: {}", response.status());
 
-asyncio.run(send_message())
-        "#, message.replace("\"", "\\\""), session_id))
-        .current_dir("../")
-        .output()
-        .map_err(|e| format!("Failed to send message: {}", e))?;
-
-    if !output.status.success() {
-        return Err(format!("Failed to send message: {}", String::from_utf8_lossy(&output.stderr)));
+    if !response.status().is_success() {
+        let status_code = response.status();
+        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+        println!("❌ HTTP error response: {}", error_text);
+        return Err(format!("HTTP error: {} - {}", status_code, error_text));
     }
 
-    let json_str = String::from_utf8_lossy(&output.stdout);
-    serde_json::from_str(&json_str)
-        .map_err(|e| format!("Failed to parse response: {}", e))
+    // Parse response
+    let response_json: serde_json::Value = response.json().await
+        .map_err(|e| {
+            println!("❌ Failed to parse JSON response: {}", e);
+            format!("Failed to parse response: {}", e)
+        })?;
+
+    println!("📦 Response JSON keys: {:?}", response_json.as_object().map(|obj| obj.keys().collect::<Vec<_>>()));
+
+    // Extract the assistant message from the response
+    if let Some(messages) = response_json.get("messages") {
+        if let Some(messages_array) = messages.as_array() {
+            println!("📝 Found {} messages in response", messages_array.len());
+            // Find the assistant message (should be the last one)
+            for msg in messages_array.iter().rev() {
+                if let Some(role) = msg.get("role") {
+                    if role == "assistant" {
+                        let content = msg.get("content").and_then(|c| c.as_str()).unwrap_or("");
+                        println!("✅ Found assistant message: {}...", &content[..50.min(content.len())]);
+                        
+                        return Ok(ChatResponse {
+                            session_id,
+                            response: ChatMessage {
+                                content: content.to_string(),
+                                agent_name: "ALIMS Main Interface Agent".to_string(),
+                                specialization: "Laboratory Operations".to_string(),
+                                confidence: 0.95,
+                                suggested_actions: vec![
+                                    "Register samples".to_string(),
+                                    "Assign to analyst".to_string(),
+                                    "Schedule tests".to_string(),
+                                ],
+                            },
+                            error: None,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    println!("❌ No assistant message found in response");
+    Err("No assistant message found in response".to_string())
 }
 
 #[tauri::command]
 async fn get_chat_history(state: State<'_, AppState>, session_id: String) -> Result<ChatSession, String> {
-    let python_path = state.python_path.lock().unwrap();
+    let backend_url = state.backend_url.lock().unwrap().clone();
     
-    // Execute Python script to get chat history
-    let output = Command::new(&*python_path)
-        .arg("-c")
-        .arg(format!(r#"
-import asyncio
-import json
-from backend.app.system.system_integration import ALimsSystemIntegration
-
-async def get_history():
-    system = ALimsSystemIntegration()
-    await system.initialize()
-    if system.agent_interface:
-        history = system.agent_interface.get_session_history("{}")
-        print(json.dumps(history))
-    else:
-        print(json.dumps({{}}))
-
-asyncio.run(get_history())
-        "#, session_id))
-        .current_dir("../")
-        .output()
+    // Create HTTP client
+    let client = reqwest::Client::new();
+    
+    // Make HTTP request to get conversation messages
+    let response = client
+        .get(&format!("{}/api/v1/interface/conversations/{}/messages", backend_url, session_id))
+        .send()
+        .await
         .map_err(|e| format!("Failed to get chat history: {}", e))?;
 
-    if !output.status.success() {
-        return Err(format!("Failed to get chat history: {}", String::from_utf8_lossy(&output.stderr)));
+    if !response.status().is_success() {
+        return Err(format!("HTTP error: {}", response.status()));
     }
 
-    let json_str = String::from_utf8_lossy(&output.stdout);
-    serde_json::from_str(&json_str)
-        .map_err(|e| format!("Failed to parse chat history: {}", e))
+    // Parse response
+    let response_json: serde_json::Value = response.json().await
+        .map_err(|e| format!("Failed to parse response: {}", e))?;
+
+    // Convert to ChatSession format
+    let mut chat_messages = Vec::new();
+    
+    if let Some(messages) = response_json.get("messages") {
+        if let Some(messages_array) = messages.as_array() {
+            for msg in messages_array {
+                if let Some(role) = msg.get("role") {
+                    if role == "assistant" {
+                        let content = msg.get("content").and_then(|c| c.as_str()).unwrap_or("");
+                        chat_messages.push(ChatMessage {
+                            content: content.to_string(),
+                            agent_name: "ALIMS Main Interface Agent".to_string(),
+                            specialization: "Laboratory Operations".to_string(),
+                            confidence: 0.95,
+                            suggested_actions: vec![
+                                "Register samples".to_string(),
+                                "Assign to analyst".to_string(),
+                                "Schedule tests".to_string(),
+                            ],
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(ChatSession {
+        session_id,
+        start_time: 0.0,
+        duration: 0.0,
+        message_count: chat_messages.len() as u32,
+        active_agents: vec!["ALIMS Main Interface Agent".to_string()],
+        messages: chat_messages,
+    })
 }
 
 // LIMS-specific commands
@@ -558,9 +688,13 @@ pub fn run() {
     // Detect Python path
     let python_path = detect_python_path();
     
+    // Set backend URL (Docker container)
+    let backend_url = "http://localhost:8003".to_string();
+    
     tauri::Builder::default()
         .manage(AppState {
             python_path: Mutex::new(python_path),
+            backend_url: Mutex::new(backend_url),
         })
         .invoke_handler(tauri::generate_handler![
             get_latest_analysis,

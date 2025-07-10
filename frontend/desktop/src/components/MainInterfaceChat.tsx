@@ -82,7 +82,7 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
     };
   }, []);
 
-  const API_BASE = 'http://127.0.0.1:8001';
+  const API_BASE = 'http://localhost:8003';
   const API_PREFIX = '/api/v1/interface';
 
   const checkConnection = async () => {
@@ -199,7 +199,7 @@ export default function MainInterfaceChat(props: MainInterfaceChatProps = {}) {
     setMessages([
       {
         role: 'agent',
-        content: 'Error: Failed to connect to Main Interface Agent. Please check if the backend is running at http://127.0.0.1:8001',
+        content: 'Error: Failed to connect to Main Interface Agent. Please check if the backend is running at http://localhost:8003',
         timestamp: new Date().toISOString(),
         agent_source: 'error'
       }
