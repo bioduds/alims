@@ -60,7 +60,42 @@ services:
       - alims-network
     restart: unless-stopped
 
+  main-interface:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.main-interface
+    container_name: alims-main-interface
+    ports:
+      - "8003:8003"
+    depends_on:
+      - postgres
+      - redis
+      - vector-db
+      - ollama
+    environment:
+      - DATABASE_URL=postgresql://alims:${DB_PASSWORD:-alimsdev}@postgres:5432/alims
+      - REDIS_URL=redis://redis:6379
+      - VECTOR_DB_URL=http://vector-db:6333
+      - OLLAMA_URL=http://ollama:11434
+      - LOG_LEVEL=INFO
+    networks:
+      - alims-network
+    restart: unless-stopped
+
   # ===== INFRASTRUCTURE SERVICES =====
+  
+  ollama:
+    image: ollama/ollama:latest
+    container_name: alims-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - alims-network
+    restart: unless-stopped
   
   postgres:
     image: postgres:15
@@ -196,6 +231,8 @@ volumes:
   prometheus_data:
     driver: local
   grafana_data:
+    driver: local
+  ollama_data:
     driver: local
 
 # ===== NETWORKS =====

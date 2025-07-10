@@ -62,6 +62,7 @@ class SemanticContext:
     """Semantic context and relationships"""
     topics: List[str] = field(default_factory=list)
     entities: List[str] = field(default_factory=list)
+    concepts: List[str] = field(default_factory=list)
     relationships: Dict[str, List[str]] = field(default_factory=dict)
     semantic_tags: List[str] = field(default_factory=list)
     confidence: float = 1.0
@@ -138,7 +139,7 @@ class UnifiedMemory(BaseModel):
     source: str = "system"
     confidence: float = 1.0
     tags: List[str] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    additional_content: Dict[str, Any] = Field(default_factory=dict)
 
 
 @dataclass

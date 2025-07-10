@@ -5,10 +5,15 @@ This creates a minimal working API server that the frontend can connect to
 with proper AI agent integration for natural conversations.
 """
 
+from app.tensor_calendar.unified_memory_tensor import UnifiedMemoryTensorEngine
+from app.tensor_calendar.memory_models import (
+    MemoryTensorConfiguration, UnifiedMemory, MemoryType, MemoryScope,
+    ModalityType, TemporalContext, SemanticContext, ConversationalContext, MemoryQuery
+)
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import logging
 import uvicorn
 import uuid
@@ -20,6 +25,11 @@ from datetime import datetime, timedelta
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
+
+# Memory system imports
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), 'app'))
 
 # Setup logging
 logging.basicConfig(
@@ -52,10 +62,14 @@ app.add_middleware(
 )
 
 # Create the Ollama model for AI responses
+ollama_base_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+if not ollama_base_url.endswith("/v1"):
+    ollama_base_url += "/v1"
+
 ollama_model = OpenAIModel(
     model_name='llama3.2',
     provider=OpenAIProvider(
-        base_url='http://localhost:11434/v1', api_key='ollama')
+        base_url=ollama_base_url, api_key='ollama')
 )
 
 # Create the main chat agent
@@ -67,7 +81,14 @@ IDENTITY & ROLE:
 - You are an intelligent laboratory assistant that PERFORMS ACTUAL ACTIONS, not just provides information
 - You understand laboratory workflows, sample processing, and TLA+ validated protocols
 - You maintain conversation context and guide users through complete lab processes
-- Current timestamp: {current_time} UTC
+- You have access to a unified memory system that stores all previous interactions
+
+MEMORY & CONTEXT AWARENESS:
+- ALWAYS remember names, patient information, and sample details mentioned in conversations
+- Use the "RELEVANT CONTEXT FROM MEMORY" section to recall previous interactions
+- If someone introduces themselves, remember their name and role throughout the conversation
+- Reference previous samples, assignments, and actions when relevant
+- Build continuity across conversations - treat each interaction as part of an ongoing relationship
 
 CORE CAPABILITIES:
 1. SAMPLE MANAGEMENT: Register, track, assign, and process samples with real IDs and actions
@@ -144,6 +165,50 @@ EMERGENCY PROTOCOLS:
 Be intelligent, contextual, and action-oriented. Actually DO things, don't just talk about them."""
 )
 
+# Initialize unified memory tensor for context awareness
+memory_system = None
+memory_config = MemoryTensorConfiguration(
+    collection_name="alims_unified_memory",
+    max_memories=10000,
+    embedding_dimension=384,
+    auto_consolidation=True,
+    enable_insight_generation=True
+)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    global memory_system
+
+    try:
+        # Initialize memory system with default configuration
+        memory_config = MemoryTensorConfiguration(
+            vector_db_url=os.getenv("VECTOR_DB_URL", "http://localhost:6334"),
+            max_retries=3,
+            retry_delay=1.0
+        )
+
+        logger.info("Initializing memory system...")
+        memory_system = UnifiedMemoryTensorEngine(memory_config)
+        await memory_system.initialize()  # Ensure any async initialization is complete
+        logger.info("Memory system initialized successfully")
+
+    except Exception as e:
+        logger.error(f"Failed to initialize memory system: {e}")
+        raise RuntimeError(f"Critical startup error: {e}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on shutdown"""
+    global memory_system
+    if memory_system:
+        try:
+            await memory_system.close()  # Add close() method if needed
+            logger.info("Memory system shutdown complete")
+        except Exception as e:
+            logger.error(f"Error during memory system shutdown: {e}")
 # In-memory storage for conversations (replace with database in production)
 conversations: Dict[str, Dict] = {}
 
@@ -269,7 +334,7 @@ async def send_message(request: MessageSendRequest):
 
         # Generate a simple AI response based on the message type
         ai_response = await generate_ai_response(
-            request.message, request.message_type)
+            request.message, request.message_type, request.conversation_id)
 
         # Update context again based on AI response
         conversation['context'] = update_context(
@@ -401,24 +466,119 @@ async def update_stage(request: StageUpdateRequest):
         )
 
 
-async def generate_ai_response(message: str, message_type: str) -> str:
+async def generate_ai_response(message: str, message_type: str, conversation_id: str = None) -> str:
     """
-    Generate AI response using the main chat agent with context awareness.
+    Generate AI response using the main chat agent with unified memory tensor context awareness.
     """
     try:
         # Get current time for context
-        current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        current_time = datetime.utcnow()
+        current_time_str = current_time.strftime('%Y-%m-%d %H:%M:%S')
 
-        # Create context-aware prompt
-        context_prompt = f"""Current time: {current_time}
+        # Retrieve relevant context from memory system
+        memory_context = ""
+        if memory_system and conversation_id:
+            try:
+                # Store current interaction in memory
+                user_memory = UnifiedMemory(
+                    id=f"user_msg_{conversation_id}_{int(current_time.timestamp())}",
+                    memory_type=MemoryType.CONVERSATION,
+                    scope=MemoryScope.SESSION,
+                    content={ModalityType.TEXT: message},
+                    primary_text=message,
+                    temporal_context=TemporalContext(
+                        timestamp=current_time,
+                        timezone="UTC"
+                    ),
+                    semantic_context=SemanticContext(
+                        topics=[message_type],
+                        entities=[],
+                        semantic_tags=message.split()[:10]
+                    ),
+                    conversational_context=ConversationalContext(
+                        conversation_id=conversation_id,
+                        turn_number=len(conversations.get(
+                            conversation_id, {}).get("messages", [])) + 1,
+                        speaker="user"
+                    ),
+                    source="user_input",
+                    tags=["user_interaction", message_type]
+                )
+                await memory_system.store_memory(user_memory)
+
+                # Retrieve relevant context from memory
+                memory_query = MemoryQuery(
+                    text_query=message,
+                    conversation_id=conversation_id,
+                    max_results=5,
+                    sort_by="relevance"
+                )
+                search_results = await memory_system.execute_query(memory_query)
+
+                if search_results:
+                    memory_context = "\n\nRELEVANT CONTEXT FROM MEMORY:"
+                    for i, result in enumerate(search_results[:3], 1):
+                        memory_context += f"\n{i}. {result.memory.primary_text[:200]}..."
+
+                logger.info(
+                    f"Retrieved {len(search_results)} relevant memories for context")
+
+            except Exception as memory_error:
+                logger.warning(f"Memory retrieval failed: {memory_error}")
+                # Use basic conversation context as fallback
+                if conversation_id in conversations:
+                    conv_messages = conversations[conversation_id].get(
+                        "messages", [])
+                    if conv_messages:
+                        memory_context = "\n\nCONVERSATION CONTEXT (Last 3 messages):"
+                        for i, msg in enumerate(conv_messages[-3:], 1):
+                            memory_context += f"\n{i}. {msg.get('role', 'unknown')}: {msg.get('content', '')[:150]}..."
+
+        # Create enhanced context-aware prompt with memory
+        context_prompt = f"""Current time: {current_time_str}
 Message type: {message_type}
-User message: {message}
+User message: {message}{memory_context}
 
-Respond as the ALIMS Main Interface Agent. Be conversational, helpful, and action-oriented."""
+Respond as the ALIMS Main Interface Agent. Be conversational, helpful, and action-oriented.
+Use the memory context to maintain conversation continuity and remember important details like names, samples, and previous interactions."""
 
         # Get response from AI agent
         result = await main_chat_agent.run(context_prompt)
-        return result.data
+
+        # Store AI response in memory
+        if memory_system and conversation_id:
+            try:
+                ai_memory = UnifiedMemory(
+                    id=f"ai_msg_{conversation_id}_{int(current_time.timestamp())}",
+                    memory_type=MemoryType.CONVERSATION,
+                    scope=MemoryScope.SESSION,
+                    content={ModalityType.TEXT: result.output},
+                    primary_text=result.output,
+                    temporal_context=TemporalContext(
+                        timestamp=current_time,
+                        timezone="UTC"
+                    ),
+                    semantic_context=SemanticContext(
+                        topics=[message_type],
+                        entities=[],
+                        semantic_tags=result.output.split()[:10]
+                    ),
+                    conversational_context=ConversationalContext(
+                        conversation_id=conversation_id,
+                        turn_number=len(conversations.get(
+                            conversation_id, {}).get("messages", [])) + 1,
+                        speaker="assistant"
+                    ),
+                    source="ai_response",
+                    tags=["ai_response", "RESPONSE"]
+                )
+                await memory_system.store_memory(ai_memory)
+                logger.info("AI response stored in memory successfully")
+            except Exception as memory_error:
+                logger.warning(f"Memory storage failed: {memory_error}")
+                # Continue without memory storage - system still works
+
+        return result.output
 
     except Exception as e:
         logger.error(f"AI agent error: {e}")
@@ -1642,6 +1802,186 @@ class StageAgent:
 # Initialize stage agent
 stage_agent = StageAgent()
 
+# Memory API Models
+
+
+class MemoryStoreRequest(BaseModel):
+    content: str
+    memory_type: str = "GENERAL"  # Default to GENERAL if not specified
+    importance: float = 1.0
+    tags: Optional[List[str]] = None
+
+
+class MemoryStoreResponse(BaseModel):
+    success: bool
+    memory_id: Optional[str] = None
+    error: Optional[str] = None
+
+
+class MemorySearchRequest(BaseModel):
+    query: str
+    max_results: int = 5
+    similarity_threshold: float = 0.7
+
+
+class MemorySearchResponse(BaseModel):
+    success: bool
+    memories: List[Dict[str, Any]] = None
+    error: Optional[str] = None
+
+# Memory API Endpoints
+
+
+@app.post("/api/v1/memory/store", response_model=MemoryStoreResponse)
+async def store_memory(request: MemoryStoreRequest):
+    """Store a new memory in the unified memory system"""
+    global memory_system
+
+    if memory_system is None:
+        return MemoryStoreResponse(
+            success=False,
+            error="Memory system not initialized"
+        )
+
+    try:
+        from datetime import datetime
+        import uuid
+
+        # Create a unified memory object with proper initialization
+        current_time = datetime.now()
+        memory = UnifiedMemory(
+            id=str(uuid.uuid4()),
+            memory_type=MemoryType(request.memory_type.upper()),
+            scope=MemoryScope.PERSISTENT,
+            primary_text=request.content,
+            temporal_context=TemporalContext(
+                timestamp=current_time,
+                start_time=current_time,
+                end_time=None,
+                duration=None
+            ),
+            semantic_context=SemanticContext(
+                topics=[],
+                entities=[],
+                concepts=[],
+                sentiment=None,
+                confidence=1.0,
+                context_type="general",
+                relations={}
+            ),
+            conversational_context=ConversationalContext(
+                speaker="user",
+                intent=None,
+                conversation_id=str(uuid.uuid4()),
+                turn_number=1
+            ),
+            modality=ModalityType.TEXT,
+            created_at=current_time,
+            updated_at=current_time,
+            importance_score=request.importance,
+            tags=request.tags or [],
+            metadata={},
+            source="api"
+        )
+
+        # Store the memory
+        result = await memory_system.store_memory(memory)
+
+        if result.get("success"):
+            return MemoryStoreResponse(
+                success=True,
+                memory_id=memory.id
+            )
+        else:
+            return MemoryStoreResponse(
+                success=False,
+                error=result.get("error", "Failed to store memory")
+            )
+
+    except Exception as e:
+        logger.error(f"Error storing memory: {e}")
+        return MemoryStoreResponse(
+            success=False,
+            error=str(e)
+        )
+
+
+@app.post("/api/v1/memory/search", response_model=MemorySearchResponse)
+async def search_memory(request: MemorySearchRequest):
+    """Search for memories using semantic similarity"""
+    global memory_system
+
+    if memory_system is None:
+        return MemorySearchResponse(
+            success=False,
+            error="Memory system not initialized"
+        )
+
+    try:
+        # Create a memory query
+        query = MemoryQuery(
+            text_query=request.query,
+            max_results=request.max_results,
+            semantic_similarity_threshold=request.similarity_threshold
+        )
+
+        # Search memories
+        search_results = await memory_system.search_memories(query)
+
+        # Format results for API response
+        memories = []
+                "relevance_score": result.relevance_score,
+                "importance": result.memory.importance_score,
+                "tags": result.memory.tags or []
+            }
+
+            # Handle potentially missing fields
+            if hasattr(result.memory, 'created_at') and result.memory.created_at:
+                memory_dict["created_at"] = result.memory.created_at.isoformat()
+            else:
+                memory_dict["created_at"] = datetime.now().isoformat()
+
+            memories.append(memory_dict)
+
+        return MemorySearchResponse(
+            success=True,
+            memories=memories
+        )
+
+    except Exception as e:
+        logger.error(f"Error searching memories: {e}")
+        return MemorySearchResponse(
+            success=False,
+
+    except Exception as e:
+        logger.error(f"Error searching memories: {e}")
+        return MemorySearchResponse(
+            success=False,
+            error=str(e)
+        )
+
+
+@app.get("/api/v1/memory/stats")
+async def get_memory_stats():
+    """Get memory system statistics"""
+    global memory_system
+
+    if memory_system is None:
+        return {"error": "Memory system not initialized"}
+
+    try:
+        stats = await memory_system.get_stats()
+        return {
+            "success": True,
+            "stats": stats
+        }
+    except Exception as e:
+        logger.error(f"Error getting memory stats: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 # Run server
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8001)
+    uvicorn.run(app, host="127.0.0.1", port=8003)

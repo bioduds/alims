@@ -26,7 +26,7 @@ from .vector_storage import VectorTensorStorage
 from .models import TensorCalendar
 
 # Our memory models
-from backend.app.tensor_calendar.memory_models import (
+from .memory_models import (
     UnifiedMemory, MemoryType, MemoryScope, ModalityType,
     TemporalContext, SemanticContext, ConversationalContext,
     WorkflowContext, MemoryQuery, MemorySearchResult,
@@ -245,8 +245,11 @@ class UnifiedMemoryTensorEngine:
         """Initialize the tensor calendar storage for unified memory"""
         try:
             # Configure tensor storage for memory integration
+            import os
+            qdrant_url = os.getenv("VECTOR_DB_URL", "http://localhost:6333")
+            
             tensor_config = {
-                "qdrant_url": f"http://localhost:6333",  # Use Docker service
+                "qdrant_url": qdrant_url,
                 "collection_name": f"memory_{self.config.collection_name}",
                 "embedding_dim": self.config.embedding_dimension,
                 "max_tensors": self.config.max_memories,

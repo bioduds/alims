@@ -13,13 +13,13 @@ from typing import Dict, List, Optional, Any, Union, AsyncContextManager
 from contextlib import asynccontextmanager
 import uuid
 
-from backend.app.tensor_calendar.memory_models import (
+from .memory_models import (
     UnifiedMemory, MemoryType, MemoryScope, ModalityType,
     TemporalContext, SemanticContext, ConversationalContext,
     WorkflowContext, MemoryQuery, MemorySearchResult,
     MemoryTensorConfiguration
 )
-from backend.app.tensor_calendar.unified_memory_tensor import UnifiedMemoryTensorEngine
+from .unified_memory_tensor import UnifiedMemoryTensorEngine
 
 logger = logging.getLogger(__name__)
 

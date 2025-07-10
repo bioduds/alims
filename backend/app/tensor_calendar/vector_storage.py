@@ -49,7 +49,10 @@ class VectorTensorStorage:
         self.max_collections = config.get("max_collections", 10)
         
         # Qdrant client configuration
-        self.qdrant_url = config.get("qdrant_url", "http://localhost:6333")
+        # Use environment variable first, then config, then default
+        import os
+        self.qdrant_url = os.getenv("VECTOR_DB_URL") or config.get(
+            "qdrant_url", "http://localhost:6333")
         self.collection_name = config.get("collection_name", "tensor_schedules")
         self.embedding_dim = config.get("embedding_dim", 384)
         
@@ -71,22 +74,40 @@ class VectorTensorStorage:
     
     async def initialize(self) -> None:
         """Initialize the vector storage system"""
-        try:
-            self._client = QdrantClient(url=self.qdrant_url)
-            
-            # Create collection if it doesn't exist
-            await self._ensure_collection_exists()
-            
-            # Load existing data to sync state
-            await self._sync_state_from_storage()
-            
-            self._system_state = "ready"
-            logger.info(f"VectorTensorStorage initialized with collection: {self.collection_name}")
-            
-        except Exception as e:
-            self._system_state = "error"
-            logger.error(f"Failed to initialize VectorTensorStorage: {e}")
-            raise TensorConstraintError(f"Initialization failed: {e}")
+        import time
+        max_retries = 10
+        retry_delay = 2
+
+        for attempt in range(max_retries):
+            try:
+                self._client = QdrantClient(url=self.qdrant_url)
+
+                # Test connection with a simple health check
+                collections = self._client.get_collections()
+
+                # Create collection if it doesn't exist
+                await self._ensure_collection_exists()
+
+                # Load existing data to sync state
+                await self._sync_state_from_storage()
+
+                self._system_state = "ready"
+                logger.info(
+                    f"VectorTensorStorage initialized with collection: {self.collection_name}")
+                return
+
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"Failed to initialize VectorTensorStorage (attempt {attempt + 1}/{max_retries}): {e}")
+                    logger.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    continue
+                else:
+                    self._system_state = "error"
+                    logger.error(
+                        f"Failed to initialize VectorTensorStorage after {max_retries} attempts: {e}")
+                    raise TensorConstraintError(f"Initialization failed: {e}")
     
     async def _ensure_collection_exists(self) -> None:
         """Ensure Qdrant collection exists with proper configuration"""
