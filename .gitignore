@@ -463,5 +463,6 @@ src-tauri/target/
 test_*.py
 *_test.py
 
-plans/
 docs/
+
+*/states/

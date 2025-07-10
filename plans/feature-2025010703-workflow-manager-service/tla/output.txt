@@ -1,0 +1,13 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file /Users/capanema/Projects/alims/plans/feature-2025010703-workflow-manager-service/tla/WorkflowManagerSimple.tla
+Parsing file /private/var/folders/jp/pycg8kzj36b2t600vy_tq5840000gn/T/Integers.tla
+Parsing file /private/var/folders/jp/pycg8kzj36b2t600vy_tq5840000gn/T/Sequences.tla
+Parsing file /private/var/folders/jp/pycg8kzj36b2t600vy_tq5840000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/jp/pycg8kzj36b2t600vy_tq5840000gn/T/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module WorkflowManagerSimple

@@ -38,6 +38,9 @@ aiohttp>=3.8.0
 aiofiles>=23.0.0
 redis>=4.5.0
 
+# Vector Database
+qdrant-client>=1.7.0
+
 # Security & Privacy
 cryptography>=41.0.0
 keyring>=24.0.0
@@ -184,4 +187,4 @@ python-multipart>=0.0.6
 
 # Document Processing
 openpyxl>=3.1.5           # Excel file processing
-PyPDF2>=3.0.1             # PDF document processing 
+PyPDF2>=3.0.1             # PDF document processing
