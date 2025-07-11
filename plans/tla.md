@@ -56,19 +56,38 @@ Where:
 
 5. Once TLC model checker is validated, clarify with user by translating the validated model into natural language if it is correct.
 
-6. Write full coverage tests for the code to be executed so that we can assure the solution produced follows the TLA+ validations.
+6. Proceed with code implementation.
 
-7. Proceed with code implementation. 
+6.1. Very important is that the code we produce is flake8 and MyPy compliant.
+6.2. All the tests we write must reflect the TLA+ validated features so that the code follows what has been validated and not only what has been implemented.
 
-7.1. Very important is that the code we produce is flake8 and MyPy compliant. 
-7.2. All the tests we write must reflect the TLA+ validated features so that the code follows what has been validated and not only what has been implemented.
+7. Write full coverage tests for the code to be executed so that we can assure the solution produced follows the TLA+ validations. DO NOT WRITE TESTS THAT VALIDATE THE IMPLMENTED CODE, WRITE TESTS THAT ENSURE THE IMPLEMENTED CODE FOLLOWS THE TLA+ VALIDATIONS.
 
-8. Identify Predicate Logic (Prolog) that must be implemented to ensure the code works intelligently and can be used by the agents 
+   - Use `pytest` for writing tests.
+   - Ensure all tests are in the `tests/` directory.
    - Use `pydantic_ai` to create agents that can reason about the data and make decisions based on the TLA+ specifications.
    - Test the agents with the same TLA+ specifications to ensure they can reason correctly about the system.
    - Ensure compliance with the TLA+ specifications by running the agents against the TLA+ model checker.
 
-8. DEFINITION OF DONE: Once all is done and pass tests we can say it is a success. Do a full report
+8. After that write unit tests that ensure implemented code works correctly without errors.
+
+   - Use `pytest` for writing tests.
+   - Ensure all tests are in the `tests/` directory.
+   - Use `pydantic_ai` to create agents that can reason about the data and make decisions based on the TLA+ specifications.
+   - Test the agents with the same TLA+ specifications to ensure they can reason correctly about the system.
+   - Ensure compliance with the TLA+ specifications by running the agents against the TLA+ model checker.
+
+9. Once the unit tests pass with higher than at least 80% coverage, write and test integration tests to ensure the system works as expected.
+
+   - Use `pytest` for writing tests.
+   - Ensure all tests are in the `tests/` directory.
+   - Use `pydantic_ai` to create agents that can reason about the data and make decisions based on the TLA+ specifications.
+   - Test the agents with the same TLA+ specifications to ensure they can reason correctly about the system.
+   - Ensure compliance with the TLA+ specifications by running the agents against the TLA+ model checker.
+   - Ensure the integration tests pass with higher than at least 80% coverage.
+
+10. DEFINITION OF DONE: Once all is done and pass tests we can say it is a success. Do a full report
+
    - Write a `tla-validation-summary.md` file in the feature folder summarizing the TLA+ validation results.
    - Write a `tla-validation-final.md` file in the feature folder summarizing the final validation results.
    - Write a `README.md` file in the feature folder explaining how to run the TLA+ model checker and how to run the tests.

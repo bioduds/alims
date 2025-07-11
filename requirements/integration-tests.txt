@@ -1,0 +1,7 @@
+# Additional requirements for integration tests
+psutil>=5.9.0  # For memory usage monitoring
+pytest-asyncio>=0.21.0  # For async test support
+pytest-benchmark>=4.0.0  # For performance testing
+pytest-xdist>=3.0.0  # For parallel test execution
+pytest-html>=3.1.0  # For HTML test reports
+asyncpg>=0.28.0  # PostgreSQL async driver
