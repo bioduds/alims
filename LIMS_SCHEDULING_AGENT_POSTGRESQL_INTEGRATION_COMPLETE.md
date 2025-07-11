@@ -26,7 +26,7 @@
   - Resource reservations and tracking
 
 ### 3. TLA+ Verified Python Implementation ✅
-- **File**: `/Users/capanema/Projects/alims/backend/app/lims/agents/scheduling_agent.py`
+- **File**: `/Users/capanema/Projects/alims/backend/app/lims/agents/sample_scheduling.py`
 - **Status**: COMPLETE - Implements TLA+ verified behavior
 - **Features**:
   - Priority-based scheduling with preemption
