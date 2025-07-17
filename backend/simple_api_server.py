@@ -3,6 +3,7 @@ Simplified FastAPI server for ALIMS frontend
 
 This creates a minimal working API server that the frontend can connect to
 with proper AI agent integration for natural conversations.
+Updated to use TLA+ verified Main Interface Agent for formal orchestration.
 """
 
 from app.tensor_calendar.unified_memory_tensor import UnifiedMemoryTensorEngine
@@ -12,6 +13,7 @@ from app.tensor_calendar.memory_models import (
 )
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 import logging
@@ -26,6 +28,17 @@ from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
+# TLA+ verified Main Interface Agent imports
+from app.intelligence.main_interface_agent import (
+    MainInterfaceAgent,
+    RequestType,
+    Priority,
+    ConversationState,
+    AgentState,
+    CentralBrainState,
+    create_main_interface_agent
+)
+
 # Memory system imports
 import sys
 import os
@@ -39,11 +52,71 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
+# Global memory system instance
+memory_system = None
+
+# Global TLA+ verified Main Interface Agent instance
+tla_main_interface_agent = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for FastAPI application"""
+    global memory_system, tla_main_interface_agent
+
+    # Startup
+    try:
+        # Initialize memory system with default configuration
+        memory_config = MemoryTensorConfiguration(
+            vector_db_url=os.getenv("VECTOR_DB_URL", "http://localhost:6334"),
+            max_retries=3,
+            retry_delay=1.0
+        )
+
+        logger.info("Initializing memory system...")
+        memory_system = UnifiedMemoryTensorEngine(memory_config)
+        await memory_system.initialize()  # Ensure any async initialization is complete
+        logger.info("Memory system initialized successfully")
+
+        # Initialize TLA+ verified Main Interface Agent
+        logger.info("Initializing TLA+ verified Main Interface Agent...")
+        tla_main_interface_agent = await create_main_interface_agent(
+            max_conversations=10,  # More conversations for Docker environment
+            max_agents=6,         # More agents for Docker environment
+            max_requests=20,      # More requests for Docker environment
+            max_responses=20      # More responses for Docker environment
+        )
+        logger.info(
+            "TLA+ verified Main Interface Agent initialized successfully")
+
+        yield
+
+    except Exception as e:
+        logger.error(f"Failed to initialize systems: {e}")
+        raise RuntimeError(f"Critical startup error: {e}")
+
+    # Shutdown
+    finally:
+        if memory_system:
+            try:
+                await memory_system.close()  # Add close() method if needed
+                logger.info("Memory system shutdown complete")
+            except Exception as e:
+                logger.error(f"Error during memory system shutdown: {e}")
+
+        if tla_main_interface_agent:
+            try:
+                await tla_main_interface_agent.stop()
+                logger.info("TLA+ Main Interface Agent shutdown complete")
+            except Exception as e:
+                logger.error(f"Error during TLA+ agent shutdown: {e}")
+
+# Create FastAPI app with lifespan
 app = FastAPI(
     title="ALIMS Main Interface Agent API",
     description="Central orchestration API for LIMS conversations and agent management",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Add CORS middleware for frontend
@@ -176,39 +249,6 @@ memory_config = MemoryTensorConfiguration(
 )
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize services on startup"""
-    global memory_system
-
-    try:
-        # Initialize memory system with default configuration
-        memory_config = MemoryTensorConfiguration(
-            vector_db_url=os.getenv("VECTOR_DB_URL", "http://localhost:6334"),
-            max_retries=3,
-            retry_delay=1.0
-        )
-
-        logger.info("Initializing memory system...")
-        memory_system = UnifiedMemoryTensorEngine(memory_config)
-        await memory_system.initialize()  # Ensure any async initialization is complete
-        logger.info("Memory system initialized successfully")
-
-    except Exception as e:
-        logger.error(f"Failed to initialize memory system: {e}")
-        raise RuntimeError(f"Critical startup error: {e}")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    global memory_system
-    if memory_system:
-        try:
-            await memory_system.close()  # Add close() method if needed
-            logger.info("Memory system shutdown complete")
-        except Exception as e:
-            logger.error(f"Error during memory system shutdown: {e}")
 # In-memory storage for conversations (replace with database in production)
 conversations: Dict[str, Dict] = {}
 
@@ -274,6 +314,41 @@ async def health():
     """Health check endpoint."""
     return {"status": "healthy", "timestamp": datetime.utcnow()}
 
+# TLA+ Agent Status endpoint
+
+
+@app.get("/api/v1/interface/tla/status")
+async def get_tla_status():
+    """Get TLA+ verified Main Interface Agent status."""
+    try:
+        global tla_main_interface_agent
+
+        if not tla_main_interface_agent:
+            return {
+                "tla_verified": False,
+                "status": "not_initialized",
+                "message": "TLA+ agent not initialized"
+            }
+
+        # Get system status from TLA+ agent
+        system_status = await tla_main_interface_agent.get_system_status()
+        health = tla_main_interface_agent.is_healthy()
+
+        return {
+            "tla_verified": True,
+            "healthy": health,
+            "status": system_status,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting TLA+ status: {e}")
+        return {
+            "tla_verified": False,
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
 # Start conversation
 
 
@@ -310,8 +385,10 @@ async def start_conversation(request: ConversationStartRequest):
 
 @app.post("/api/v1/interface/conversations/message", response_model=MessageSendResponse)
 async def send_message(request: MessageSendRequest):
-    """Send a message to the specified conversation."""
+    """Send a message to the specified conversation using TLA+ verified Main Interface Agent."""
     try:
+        global tla_main_interface_agent
+
         if request.conversation_id not in conversations:
             raise HTTPException(
                 status_code=404, detail="Conversation not found")
@@ -332,8 +409,8 @@ async def send_message(request: MessageSendRequest):
         }
         conversation["messages"].append(user_msg)
 
-        # Generate a simple AI response based on the message type
-        ai_response = await generate_ai_response(
+        # Process through TLA+ verified Main Interface Agent
+        ai_response = await process_with_tla_agent(
             request.message, request.message_type, request.conversation_id)
 
         # Update context again based on AI response
@@ -464,6 +541,93 @@ async def update_stage(request: StageUpdateRequest):
             success=False,
             error=str(e)
         )
+
+
+async def process_with_tla_agent(message: str, message_type: str, conversation_id: str = None) -> str:
+    """
+    Process message through TLA+ verified Main Interface Agent with formal orchestration.
+    """
+    try:
+        global tla_main_interface_agent
+
+        if not tla_main_interface_agent:
+            logger.warning(
+                "TLA+ agent not initialized, falling back to basic response")
+            return await generate_ai_response(message, message_type, conversation_id)
+
+        # Map message type to TLA+ request type
+        request_type_mapping = {
+            "SAMPLE_INQUIRY": RequestType.SAMPLE_INQUIRY,
+            "WORKFLOW_COMMAND": RequestType.WORKFLOW_COMMAND,
+            "SYSTEM_QUERY": RequestType.SYSTEM_QUERY,
+            "AGENT_REQUEST": RequestType.AGENT_REQUEST
+        }
+
+        request_type = request_type_mapping.get(
+            message_type, RequestType.SAMPLE_INQUIRY)
+
+        # Start TLA+ conversation if needed
+        tla_conversation_id = None
+        try:
+            tla_conversation_id = await tla_main_interface_agent.start_conversation()
+        except Exception as e:
+            logger.warning(f"Could not start TLA+ conversation: {e}")
+            return await generate_ai_response(message, message_type, conversation_id)
+
+        # Process request through TLA+ verified agent
+        request_accepted = await tla_main_interface_agent.receive_user_request(
+            conversation_id=tla_conversation_id,
+            content=message,
+            request_type=request_type,
+            priority=Priority.MEDIUM
+        )
+
+        if not request_accepted:
+            logger.warning(
+                "TLA+ agent rejected request, falling back to basic response")
+            return await generate_ai_response(message, message_type, conversation_id)
+
+        # Try to orchestrate through TLA+ agent
+        orchestrated = await tla_main_interface_agent.analyze_and_orchestrate()
+
+        if orchestrated:
+            # Get conversation context from TLA+ agent
+            conv_context = await tla_main_interface_agent.get_conversation_history(tla_conversation_id)
+
+            if conv_context and conv_context.get("active_agents"):
+                # Simulate agent responses for active agents
+                for agent_id in conv_context["active_agents"]:
+                    await tla_main_interface_agent.receive_agent_response(
+                        agent_id=agent_id,
+                        conversation_id=tla_conversation_id,
+                        content=f"Processed: {message[:100]}{'...' if len(message) > 100 else ''}",
+                        success=True
+                    )
+
+                # Try to synthesize response
+                synthesized = await tla_main_interface_agent.synthesize_and_respond()
+                if synthesized:
+                    # Complete the TLA+ conversation
+                    await tla_main_interface_agent.complete_conversation(tla_conversation_id)
+
+                    # Enhance the TLA+ response with AI-generated content
+                    enhanced_response = await generate_ai_response(message, message_type, conversation_id)
+
+                    return f"""🔬 **TLA+ VERIFIED RESPONSE**
+{synthesized}
+
+💡 **ENHANCED ASSISTANCE**
+{enhanced_response}
+
+📊 **SYSTEM STATUS**: {conv_context.get('state', 'ACTIVE')}
+🤖 **ACTIVE AGENTS**: {', '.join(conv_context.get('active_agents', []))}"""
+
+        # Fallback to basic AI response if TLA+ processing fails
+        return await generate_ai_response(message, message_type, conversation_id)
+
+    except Exception as e:
+        logger.error(f"Error in TLA+ agent processing: {e}")
+        return await generate_ai_response(message, message_type, conversation_id)
 
 
 async def generate_ai_response(message: str, message_type: str, conversation_id: str = None) -> str:

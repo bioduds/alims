@@ -9,8 +9,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 
-from .sample_manager import SampleManager, Sample, SampleStatus, SampleType
-from .laboratory_workflow import LaboratoryWorkflowEngine, LaboratoryWorkflow, WorkflowStatus
+from ..core.sample_manager import SampleManager, Sample, SampleStatus, SampleType
+from ..core.laboratory_workflow import LaboratoryWorkflowEngine, LaboratoryWorkflow, WorkflowStatus
 
 
 @dataclass

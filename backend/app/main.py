@@ -19,10 +19,12 @@ from pathlib import Path
 from typing import Optional
 
 from .core.sample_manager import SampleManager
-from .core.laboratory_workflow import LaboratoryWorkflow
+from .core.laboratory_workflow import LaboratoryWorkflow, LaboratoryWorkflowEngine
 from .system.permissions import PermissionManager
 from .system.lims_interface import LIMSInterface
 from .intelligence.main_interface_service import LIMSMainInterfaceService
+from .lims.agents.result_processing import ResultProcessingAgent
+from .lims.models import AgentConfiguration
 
 
 class ALIMSApp:
@@ -47,6 +49,9 @@ class ALIMSApp:
         self.permission_manager: Optional[PermissionManager] = None
         self.lims_interface: Optional[LIMSInterface] = None
         self.main_interface_service: Optional[LIMSMainInterfaceService] = None
+
+        # LIMS Agents (NEW: Result Processing Agent integration)
+        self.result_processing_agent: Optional[ResultProcessingAgent] = None
 
         # LIMS Configuration
         self.config = {
@@ -77,6 +82,20 @@ class ALIMSApp:
                 max_samples=self.config['max_samples'],
                 retention_days=self.config['data_retention_days']
             )
+
+            # Initialize Result Processing Agent (NEW: TLA+ validated integration)
+            agent_config = AgentConfiguration(
+                max_raw_results=self.config.get('max_agent_capacity', 100),
+                max_processed_results=self.config.get(
+                    'max_agent_capacity', 100),
+                max_retries=self.config.get('max_agent_retries', 3),
+                retry_delay_seconds=self.config.get(
+                    'agent_retry_delay_seconds', 1.0),
+                processing_timeout_seconds=self.config.get(
+                    'agent_timeout_seconds', 300.0)
+            )
+            self.result_processing_agent = ResultProcessingAgent(agent_config)
+            await self.result_processing_agent.initialize()
 
             # Initialize laboratory workflow engine
             self.laboratory_workflow = LaboratoryWorkflowEngine(self.config)
@@ -115,14 +134,15 @@ class ALIMSApp:
             # Start core LIMS components
             if self.laboratory_workflow:
                 # Workflow engine starts automatically
+                pass
 
-                # Show interface notification
+            # Show interface notification
             if self.lims_interface:
                 await self.lims_interface._add_notification(
                     "success", "ALIMS Started", "Laboratory Information Management System is now active"
                 )
 
-                self.logger.info("ALIMS system started successfully")
+            self.logger.info("ALIMS system started successfully")
 
             # Run main loop
             await self._main_loop()
@@ -151,6 +171,10 @@ class ALIMSApp:
         if self.sample_manager and not self.sample_manager.is_healthy():
             self.logger.warning("Sample manager health check failed")
 
+        # Check Result Processing Agent health (NEW: TLA+ validated integration)
+        if self.result_processing_agent and not self.result_processing_agent.is_healthy():
+            self.logger.warning("Result Processing Agent health check failed")
+
         if self.laboratory_workflow and not self.laboratory_workflow.is_healthy():
             self.logger.warning("Laboratory workflow health check failed")
 
@@ -170,7 +194,7 @@ class ALIMSApp:
         self.logger.info("Shutting down ALIMS...")
         self.running = False
 
-        # Stop components in reverse order
+        # Stop components in reverse order (following TLA+ shutdown specification)
         if self.lims_interface:
             await self.lims_interface.cleanup()
 
@@ -180,6 +204,10 @@ class ALIMSApp:
         if self.laboratory_workflow:
             # Workflow engine cleanup if needed
             pass
+
+        # Stop Result Processing Agent (NEW: TLA+ validated shutdown)
+        if self.result_processing_agent:
+            await self.result_processing_agent.stop()
 
         if self.sample_manager:
             # Sample manager cleanup if needed
@@ -201,7 +229,7 @@ async def main():
     """Main entry point"""
     setup_logging()
 
-    app = AlimsApp()
+    app = ALIMSApp()
 
     try:
         await app.start()

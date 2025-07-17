@@ -8,7 +8,7 @@ validation at runtime with TLA+ property enforcement.
 
 from datetime import datetime
 from enum import Enum
-from typing import List, Dict, Optional, Set
+from typing import List, Dict, Optional, Set, Any
 from pydantic import BaseModel, Field, field_validator
 from uuid import UUID, uuid4
 import logging
@@ -450,7 +450,7 @@ class LIMSSystemState(BaseModel):
             logger.error(f"Invariant validation failed: {e}")
             return {"ValidationError": False}
 
-    def get_system_stats(self) -> Dict[str, any]:
+    def get_system_stats(self) -> Dict[str, Any]:
         """Get comprehensive system statistics"""
         state_counts = {}
         for state in SampleState:
@@ -485,11 +485,166 @@ class LIMSSystemState(BaseModel):
         logger.info("All workflows validated successfully")
 
 
+# ============================================================================
+# Result Processing Agent Models
+# ============================================================================
+
+class SystemState(str, Enum):
+    """System states for Result Processing Agent based on TLA+ specification."""
+    INITIALIZING = "INITIALIZING"
+    READY = "READY"
+    PROCESSING = "PROCESSING"
+    OVERLOADED = "OVERLOADED"
+    SHUTDOWN = "SHUTDOWN"
+
+
+class ProcessingState(str, Enum):
+    """Processing states for individual results based on TLA+ specification."""
+    RAW_RECEIVED = "RAW_RECEIVED"
+    PROCESSING = "PROCESSING"
+    PROCESSED = "PROCESSED"
+    FAILED = "FAILED"
+    QUEUED_FOR_REVIEW = "QUEUED_FOR_REVIEW"
+
+
+class RawResult(BaseModel):
+    """Raw result data received from instruments."""
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    instrument_id: str
+    test_type: str
+    raw_data: str  # Raw data from instrument (JSON, CSV, XML, HL7, etc.)
+    format_type: str = Field(default="JSON")  # Data format type
+    timestamp: datetime = Field(default_factory=datetime.now)
+    patient_id: Optional[str] = None
+    sample_id: Optional[str] = None
+
+    class Config:
+        frozen = True
+
+
+class ProcessedResult(BaseModel):
+    """Processed result ready for validation."""
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    raw_result_id: str
+    structured_data: Dict[str, Any]
+    processing_metadata: Dict[str, Any] = Field(default_factory=dict)
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+    class Config:
+        frozen = True
+
+
+class ProcessingRecord(BaseModel):
+    """Record tracking the processing of a raw result."""
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    raw_result_id: str
+    current_state: ProcessingState = ProcessingState.RAW_RECEIVED
+    retry_count: int = 0
+    state_history: List[Dict[str, Any]] = Field(default_factory=list)
+    error_history: List[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+    def add_state_transition(self, new_state: ProcessingState) -> None:
+        """Add a state transition to the history."""
+        self.state_history.append({
+            'from_state': self.current_state.value,
+            'to_state': new_state.value,
+            'timestamp': datetime.now().isoformat()
+        })
+        self.current_state = new_state
+        self.updated_at = datetime.now()
+
+    def add_error(self, error_message: str) -> None:
+        """Add an error to the error history."""
+        self.error_history.append(
+            f"{datetime.now().isoformat()}: {error_message}")
+        self.updated_at = datetime.now()
+
+    def can_retry(self, max_retries: int) -> bool:
+        """Check if the result can be retried."""
+        return self.retry_count < max_retries
+
+    def increment_retry(self) -> None:
+        """Increment the retry count."""
+        self.retry_count += 1
+        self.updated_at = datetime.now()
+
+
+class AgentConfiguration(BaseModel):
+    """Configuration for Result Processing Agent."""
+    max_raw_results: int = Field(default=100)
+    max_processed_results: int = Field(default=100)
+    max_retries: int = Field(default=3)
+    retry_delay_seconds: float = Field(default=1.0)
+    processing_timeout_seconds: float = Field(default=300.0)  # 5 minutes
+
+    class Config:
+        frozen = True
+
+
+class AgentMetrics(BaseModel):
+    """Metrics tracked by the Result Processing Agent."""
+    total_results_received: int = 0
+    total_results_processed: int = 0
+    total_results_failed: int = 0
+    total_retries_attempted: int = 0
+    current_queue_size: int = 0
+    current_processed_queue_size: int = 0
+    average_processing_time_ms: float = 0.0
+    uptime_seconds: float = 0.0
+
+    def dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            'total_results_received': self.total_results_received,
+            'total_results_processed': self.total_results_processed,
+            'total_results_failed': self.total_results_failed,
+            'total_retries_attempted': self.total_retries_attempted,
+            'current_queue_size': self.current_queue_size,
+            'current_processed_queue_size': self.current_processed_queue_size,
+            'average_processing_time_ms': self.average_processing_time_ms,
+            'uptime_seconds': self.uptime_seconds
+        }
+
+
+# Custom exceptions for Result Processing Agent
+class ProcessingError(Exception):
+    """Base exception for processing errors."""
+    pass
+
+
+class CapacityExceededError(ProcessingError):
+    """Raised when system capacity is exceeded."""
+    pass
+
+
+class MaxRetriesExceededError(ProcessingError):
+    """Raised when maximum retries have been exceeded."""
+    pass
+
+
+class InvalidSystemStateError(ProcessingError):
+    """Raised when an operation is attempted in an invalid system state."""
+    pass
+
+
 # Export main classes
 __all__ = [
     'SampleState',
     'Sample', 
     'SampleWorkflow',
     'LIMSSystemState',
-    'AuditLogEntry'
+    'AuditLogEntry',
+    'SystemState',
+    'ProcessingState',
+    'RawResult',
+    'ProcessedResult',
+    'ProcessingRecord',
+    'AgentConfiguration',
+    'AgentMetrics',
+    'ProcessingError',
+    'CapacityExceededError',
+    'MaxRetriesExceededError',
+    'InvalidSystemStateError',
 ]

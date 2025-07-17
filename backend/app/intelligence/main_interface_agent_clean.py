@@ -32,20 +32,17 @@ import json
 
 logger = logging.getLogger(__name__)
 
-
 class ConversationState(str, Enum):
     """TLA+ verified conversation states"""
     ACTIVE = "ACTIVE"
     COMPLETED = "COMPLETED"
     ERROR = "ERROR"
 
-
 class AgentState(str, Enum):
     """TLA+ verified agent states"""
     IDLE = "IDLE"
     BUSY = "BUSY"
     ERROR = "ERROR"
-
 
 class CentralBrainState(str, Enum):
     """TLA+ verified central brain states"""
@@ -54,7 +51,6 @@ class CentralBrainState(str, Enum):
     WAITING_FOR_RESPONSE = "WAITING_FOR_RESPONSE"
     SYNTHESIZING = "SYNTHESIZING"
 
-
 class RequestType(str, Enum):
     """Types of user requests"""
     SAMPLE_INQUIRY = "SAMPLE_INQUIRY"
@@ -62,14 +58,12 @@ class RequestType(str, Enum):
     SYSTEM_QUERY = "SYSTEM_QUERY"
     AGENT_REQUEST = "AGENT_REQUEST"
 
-
 class Priority(str, Enum):
     """Request priority levels"""
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     URGENT = "URGENT"
-
 
 @dataclass
 class UserRequest:
@@ -82,8 +76,6 @@ class UserRequest:
     user_id: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-
-
 @dataclass
 class AgentResponse:
     """Agent response data structure - following TLA+ specification"""
@@ -94,7 +86,6 @@ class AgentResponse:
     timestamp: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-
 @dataclass
 class AgentInfo:
     """Agent information structure - following TLA+ specification"""
@@ -104,7 +95,6 @@ class AgentInfo:
     current_conversation: Optional[str] = None
     last_activity: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
-
 
 @dataclass
 class ConversationContext:
@@ -118,7 +108,6 @@ class ConversationContext:
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
-
 @dataclass
 class SystemMetrics:
     """System performance metrics - following TLA+ specification"""
@@ -129,7 +118,6 @@ class SystemMetrics:
     errors: int = 0
     average_response_time: float = 0.0
     last_updated: datetime = field(default_factory=datetime.now)
-
 
 class MainInterfaceAgent:
     """
@@ -144,14 +132,14 @@ class MainInterfaceAgent:
     - Resource Management: Respects TLA+ verified bounds
     - State Management: Maintains TLA+ verified consistency
     """
-
+    
     def __init__(self, max_conversations: int = 3, max_agents: int = 3, max_requests: int = 5, max_responses: int = 5):
         # TLA+ verified resource bounds
         self.max_conversations = max_conversations
         self.max_agents = max_agents
         self.max_requests = max_requests
         self.max_responses = max_responses
-
+        
         # TLA+ verified state variables
         self.conversations: Dict[str, ConversationContext] = {}
         self.available_agents: Dict[str, AgentInfo] = {}
@@ -159,16 +147,16 @@ class MainInterfaceAgent:
         self.agent_responses: List[AgentResponse] = []
         self.central_brain_state = CentralBrainState.READY
         self.system_metrics = SystemMetrics()
-
+        
         # Thread safety for async operations
         self._state_lock = asyncio.Lock()
-
+        
         # Initialize logging
         self.logger = logging.getLogger(f"{__name__}.MainInterfaceAgent")
-
+        
         # Integration state tracking
         self._initialized = False
-
+        
     async def initialize(self) -> bool:
         """
         Initialize the Main Interface Agent
@@ -178,22 +166,20 @@ class MainInterfaceAgent:
             try:
                 if self._initialized:
                     return True
-
+                
                 # Initialize core agent registry with TLA+ verified capabilities
                 await self._initialize_core_agents()
-
+                
                 self.central_brain_state = CentralBrainState.READY
                 self._initialized = True
-
-                self.logger.info(
-                    "Main Interface Agent initialized successfully")
+                
+                self.logger.info("Main Interface Agent initialized successfully")
                 return True
-
+                
             except Exception as e:
-                self.logger.error(
-                    f"Failed to initialize Main Interface Agent: {e}")
+                self.logger.error(f"Failed to initialize Main Interface Agent: {e}")
                 return False
-
+    
     async def _initialize_core_agents(self):
         """Initialize core LIMS agents with TLA+ verified capabilities"""
         core_agents = [
@@ -202,21 +188,17 @@ class MainInterfaceAgent:
             ("system_monitor_001", "system_monitor"),
             ("lims_coordinator_001", "lims_coordinator")
         ]
-
-        # Ensure we have enough capacity for core agents
-        required_agents = min(len(core_agents), self.max_agents)
-
-        for i in range(required_agents):
-            agent_id, capability = core_agents[i]
-            agent_info = AgentInfo(
-                agent_id=agent_id,
-                capabilities=capability,
-                state=AgentState.IDLE
-            )
-            self.available_agents[agent_id] = agent_info
-            self.logger.info(
-                f"Initialized core agent {agent_id} with capability: {capability}")
-
+        
+        for agent_id, capability in core_agents:
+            if len(self.available_agents) < self.max_agents:
+                agent_info = AgentInfo(
+                    agent_id=agent_id,
+                    capabilities=capability,
+                    state=AgentState.IDLE
+                )
+                self.available_agents[agent_id] = agent_info
+                self.logger.info(f"Initialized core agent {agent_id} with capability: {capability}")
+    
     async def register_agent(self, agent_id: str, capabilities: str) -> bool:
         """
         Register a specialized agent with the system
@@ -224,25 +206,23 @@ class MainInterfaceAgent:
         """
         async with self._state_lock:
             if len(self.available_agents) >= self.max_agents:
-                self.logger.warning(
-                    f"Maximum agents ({self.max_agents}) reached")
+                self.logger.warning(f"Maximum agents ({self.max_agents}) reached")
                 return False
-
+            
             if agent_id in self.available_agents:
                 self.logger.warning(f"Agent {agent_id} already registered")
                 return False
-
+            
             agent_info = AgentInfo(
                 agent_id=agent_id,
                 capabilities=capabilities,
                 state=AgentState.IDLE
             )
-
+            
             self.available_agents[agent_id] = agent_info
-            self.logger.info(
-                f"Registered agent {agent_id} with capabilities: {capabilities}")
+            self.logger.info(f"Registered agent {agent_id} with capabilities: {capabilities}")
             return True
-
+    
     async def start_conversation(self, user_id: Optional[str] = None) -> str:
         """
         Start a new conversation
@@ -250,27 +230,26 @@ class MainInterfaceAgent:
         """
         async with self._state_lock:
             if len(self.conversations) >= self.max_conversations:
-                raise Exception(
-                    f"Maximum conversations ({self.max_conversations}) reached")
-
+                raise Exception(f"Maximum conversations ({self.max_conversations}) reached")
+            
             conversation_id = str(uuid.uuid4())
-
+            
             context = ConversationContext(
                 conversation_id=conversation_id,
                 state=ConversationState.ACTIVE
             )
-
+            
             self.conversations[conversation_id] = context
             self.system_metrics.total_conversations += 1
             self.system_metrics.active_conversations += 1
-
+            
             self.logger.info(f"Started conversation {conversation_id}")
             return conversation_id
-
+    
     async def receive_user_request(
-        self,
-        conversation_id: str,
-        content: str,
+        self, 
+        conversation_id: str, 
+        content: str, 
         request_type: RequestType,
         priority: Priority = Priority.MEDIUM,
         user_id: Optional[str] = None,
@@ -284,16 +263,15 @@ class MainInterfaceAgent:
             if conversation_id not in self.conversations:
                 self.logger.error(f"Conversation {conversation_id} not found")
                 return False
-
+            
             if self.conversations[conversation_id].state != ConversationState.ACTIVE:
                 self.logger.error(f"Conversation {conversation_id} not active")
                 return False
-
+            
             if len(self.user_requests) >= self.max_requests:
-                self.logger.warning(
-                    f"Maximum requests ({self.max_requests}) reached")
+                self.logger.warning(f"Maximum requests ({self.max_requests}) reached")
                 return False
-
+            
             request = UserRequest(
                 conversation_id=conversation_id,
                 request_type=request_type,
@@ -302,16 +280,15 @@ class MainInterfaceAgent:
                 user_id=user_id,
                 metadata=metadata or {}
             )
-
+            
             self.user_requests.append(request)
             self.conversations[conversation_id].request_history.append(request)
             self.conversations[conversation_id].updated_at = datetime.now()
             self.system_metrics.total_requests += 1
-
-            self.logger.info(
-                f"Received request for conversation {conversation_id}: {request_type}")
+            
+            self.logger.info(f"Received request for conversation {conversation_id}: {request_type}")
             return True
-
+    
     async def analyze_and_orchestrate(self) -> bool:
         """
         Analyze pending requests and orchestrate appropriate agents
@@ -320,41 +297,39 @@ class MainInterfaceAgent:
         async with self._state_lock:
             if not self.user_requests:
                 return False
-
+            
             if self.central_brain_state != CentralBrainState.READY:
                 return False
-
+            
             # Transition to orchestrating state (TLA+ verified)
             self.central_brain_state = CentralBrainState.ORCHESTRATING
-
+            
             # Get next request (FIFO as per TLA+ spec)
             request = self.user_requests.pop(0)
             conv_id = request.conversation_id
-
+            
             # Determine required capabilities based on request type (TLA+ verified mapping)
-            required_capabilities = self._get_required_capabilities(
-                request.request_type)
-
+            required_capabilities = self._get_required_capabilities(request.request_type)
+            
             # Find suitable idle agents (TLA+ verified logic)
             suitable_agents = set()
             for agent_id, agent in self.available_agents.items():
-                if (agent.state == AgentState.IDLE and
-                        agent.capabilities in required_capabilities):
+                if (agent.state == AgentState.IDLE and 
+                    agent.capabilities in required_capabilities):
                     suitable_agents.add(agent_id)
-
+            
             # Update conversation context (TLA+ verified)
             if conv_id in self.conversations:
                 self.conversations[conv_id].user_intent = request.request_type.value
                 self.conversations[conv_id].active_agents = suitable_agents
                 self.conversations[conv_id].updated_at = datetime.now()
-
+            
             # Transition back to ready state (TLA+ verified)
             self.central_brain_state = CentralBrainState.READY
-
-            self.logger.info(
-                f"Orchestrated request for conversation {conv_id} with {len(suitable_agents)} agents")
+            
+            self.logger.info(f"Orchestrated request for conversation {conv_id} with {len(suitable_agents)} agents")
             return True
-
+    
     def _get_required_capabilities(self, request_type: RequestType) -> Set[str]:
         """
         Get required capabilities for a request type
@@ -364,11 +339,10 @@ class MainInterfaceAgent:
             RequestType.SAMPLE_INQUIRY: {"sample_tracker", "workflow_manager"},
             RequestType.WORKFLOW_COMMAND: {"workflow_manager", "lims_coordinator"},
             RequestType.SYSTEM_QUERY: {"system_monitor"},
-            RequestType.AGENT_REQUEST: {
-                "sample_tracker", "workflow_manager", "lims_coordinator"}
+            RequestType.AGENT_REQUEST: {"sample_tracker", "workflow_manager", "lims_coordinator"}
         }
         return capability_mapping.get(request_type, set())
-
+    
     async def route_to_agent(self, agent_id: str, request_content: str) -> bool:
         """
         Route a request to a specific agent
@@ -378,28 +352,28 @@ class MainInterfaceAgent:
             if agent_id not in self.available_agents:
                 self.logger.error(f"Agent {agent_id} not found")
                 return False
-
+            
             agent = self.available_agents[agent_id]
-
+            
             if agent.state != AgentState.IDLE:
                 self.logger.error(f"Agent {agent_id} not idle")
                 return False
-
+            
             # Update agent state to busy (TLA+ verified)
             agent.state = AgentState.BUSY
             agent.last_activity = datetime.now()
-
+            
             # Transition central brain to waiting state (TLA+ verified)
             self.central_brain_state = CentralBrainState.WAITING_FOR_RESPONSE
-
+            
             self.logger.info(f"Routed request to agent {agent_id}")
             return True
-
+    
     async def receive_agent_response(
-        self,
-        agent_id: str,
-        conversation_id: str,
-        content: str,
+        self, 
+        agent_id: str, 
+        conversation_id: str, 
+        content: str, 
         success: bool,
         metadata: Optional[Dict[str, Any]] = None
     ) -> bool:
@@ -411,16 +385,15 @@ class MainInterfaceAgent:
             if agent_id not in self.available_agents:
                 self.logger.error(f"Agent {agent_id} not found")
                 return False
-
+            
             if conversation_id not in self.conversations:
                 self.logger.error(f"Conversation {conversation_id} not found")
                 return False
-
+            
             if len(self.agent_responses) >= self.max_responses:
-                self.logger.warning(
-                    f"Maximum responses ({self.max_responses}) reached")
+                self.logger.warning(f"Maximum responses ({self.max_responses}) reached")
                 return False
-
+            
             # Create response object (TLA+ verified structure)
             response = AgentResponse(
                 conversation_id=conversation_id,
@@ -429,28 +402,26 @@ class MainInterfaceAgent:
                 success=success,
                 metadata=metadata or {}
             )
-
+            
             # Add to response queue (TLA+ verified)
             self.agent_responses.append(response)
-            self.conversations[conversation_id].response_history.append(
-                response)
-
+            self.conversations[conversation_id].response_history.append(response)
+            
             # Update agent state back to idle (TLA+ verified)
             agent = self.available_agents[agent_id]
             agent.state = AgentState.IDLE
             agent.current_conversation = None
             agent.last_activity = datetime.now()
-
+            
             # Transition to synthesizing state (TLA+ verified)
             self.central_brain_state = CentralBrainState.SYNTHESIZING
-
+            
             # Update system metrics (TLA+ verified)
             self.system_metrics.total_responses += 1
             if not success:
                 self.system_metrics.errors += 1
-
-            self.logger.info(
-                f"Received response from agent {agent_id} for conversation {conversation_id}")
+            
+            self.logger.info(f"Received response from agent {agent_id} for conversation {conversation_id}")
             return True
     
     async def synthesize_and_respond(self) -> Optional[str]:
@@ -461,10 +432,10 @@ class MainInterfaceAgent:
         async with self._state_lock:
             if not self.agent_responses:
                 return None
-
+            
             if self.central_brain_state != CentralBrainState.SYNTHESIZING:
                 return None
-
+            
             # Get next response (FIFO as per TLA+ spec)
             response = self.agent_responses.pop(0)
             
@@ -474,10 +445,9 @@ class MainInterfaceAgent:
             # Transition back to ready state (TLA+ verified)
             self.central_brain_state = CentralBrainState.READY
             
-            self.logger.info(
-                f"Synthesized response for conversation {response.conversation_id}")
+            self.logger.info(f"Synthesized response for conversation {response.conversation_id}")
             return synthesized_response
-
+    
     def _synthesize_response(self, response: AgentResponse) -> str:
         """
         Synthesize a final response from agent response
@@ -487,7 +457,7 @@ class MainInterfaceAgent:
             return f"Agent {response.agent_id} successfully processed your request: {response.content}"
         else:
             return f"Agent {response.agent_id} encountered an error: {response.content}"
-
+    
     async def handle_agent_error(self, agent_id: str, error_message: str) -> bool:
         """
         Handle agent error conditions
@@ -497,14 +467,14 @@ class MainInterfaceAgent:
             if agent_id not in self.available_agents:
                 self.logger.error(f"Agent {agent_id} not found")
                 return False
-
+            
             agent = self.available_agents[agent_id]
             agent.state = AgentState.ERROR
             agent.last_activity = datetime.now()
-
+            
             # Update system metrics (TLA+ verified)
             self.system_metrics.errors += 1
-
+            
             self.logger.error(f"Agent {agent_id} error: {error_message}")
             return True
     
@@ -517,17 +487,17 @@ class MainInterfaceAgent:
             if conversation_id not in self.conversations:
                 self.logger.error(f"Conversation {conversation_id} not found")
                 return False
-
+            
             conversation = self.conversations[conversation_id]
             conversation.state = ConversationState.COMPLETED
             conversation.updated_at = datetime.now()
-
+            
             # Update system metrics (TLA+ verified)
             self.system_metrics.active_conversations -= 1
             
             self.logger.info(f"Completed conversation {conversation_id}")
             return True
-
+    
     async def process_next_request(self) -> bool:
         """
         Process the next pending request
@@ -536,7 +506,7 @@ class MainInterfaceAgent:
         # Try to orchestrate new requests
         if await self.analyze_and_orchestrate():
             return True
-
+        
         # Try to synthesize responses
         response = await self.synthesize_and_respond()
         if response:
@@ -549,7 +519,7 @@ class MainInterfaceAgent:
         async with self._state_lock:
             if conversation_id not in self.conversations:
                 return None
-
+            
             context = self.conversations[conversation_id]
             return {
                 'conversation_id': context.conversation_id,
@@ -561,7 +531,7 @@ class MainInterfaceAgent:
                 'created_at': context.created_at.isoformat(),
                 'updated_at': context.updated_at.isoformat()
             }
-
+    
     async def get_active_conversations(self) -> List[Dict[str, Any]]:
         """Get all active conversations following TLA+ specification"""
         async with self._state_lock:
@@ -578,7 +548,7 @@ class MainInterfaceAgent:
                         'updated_at': context.updated_at.isoformat()
                     })
             return active_conversations
-
+    
     async def get_system_status(self) -> Dict[str, Any]:
         """Get system status and metrics following TLA+ specification"""
         async with self._state_lock:
@@ -603,7 +573,7 @@ class MainInterfaceAgent:
                 },
                 'last_updated': datetime.now().isoformat()
             }
-
+    
     def is_healthy(self) -> bool:
         """
         Check if the agent is healthy
@@ -611,14 +581,14 @@ class MainInterfaceAgent:
         """
         return (
             self._initialized and
-            self.central_brain_state in [CentralBrainState.READY, CentralBrainState.ORCHESTRATING,
-                                         CentralBrainState.WAITING_FOR_RESPONSE, CentralBrainState.SYNTHESIZING] and
-            len(self.user_requests) <= self.max_requests and
-            len(self.agent_responses) <= self.max_responses and
+            self.central_brain_state in [CentralBrainState.READY, CentralBrainState.ORCHESTRATING, 
+                                       CentralBrainState.WAITING_FOR_RESPONSE, CentralBrainState.SYNTHESIZING] and
+            len(self.user_requests) < self.max_requests and
+            len(self.agent_responses) < self.max_responses and
             len(self.conversations) <= self.max_conversations and
             len(self.available_agents) <= self.max_agents
         )
-
+    
     async def stop(self) -> None:
         """
         Stop the Main Interface Agent
@@ -626,34 +596,32 @@ class MainInterfaceAgent:
         """
         async with self._state_lock:
             self.logger.info("Stopping Main Interface Agent...")
-
+            
             # Complete all active conversations
             for conversation_id, context in self.conversations.items():
                 if context.state == ConversationState.ACTIVE:
                     context.state = ConversationState.COMPLETED
                     context.updated_at = datetime.now()
-
+            
             # Reset all agents to idle
             for agent in self.available_agents.values():
                 agent.state = AgentState.IDLE
                 agent.current_conversation = None
-
+            
             # Clear queues
             self.user_requests.clear()
             self.agent_responses.clear()
-
+            
             # Update metrics
             self.system_metrics.active_conversations = 0
-
+            
             # Reset state
             self.central_brain_state = CentralBrainState.READY
             self._initialized = False
-
+            
             self.logger.info("Main Interface Agent stopped")
 
 # Factory function for creating Main Interface Agent
-
-
 async def create_main_interface_agent(
     max_conversations: int = 3,
     max_agents: int = 3,
@@ -664,14 +632,11 @@ async def create_main_interface_agent(
     Create and initialize a Main Interface Agent
     Following TLA+ specification factory pattern
     """
-    agent = MainInterfaceAgent(
-        max_conversations, max_agents, max_requests, max_responses)
+    agent = MainInterfaceAgent(max_conversations, max_agents, max_requests, max_responses)
     await agent.initialize()
     return agent
 
 # System configuration following TLA+ specification
-
-
 @dataclass
 class SystemConfiguration:
     """System configuration for Main Interface Agent following TLA+ specification"""
@@ -684,11 +649,8 @@ class SystemConfiguration:
     health_check_interval: int = 60
 
 # Main Interface Agent System class for compatibility
-
-
 class MainInterfaceAgentSystem:
     """Compatibility wrapper for existing code following TLA+ specification"""
-
     def __init__(self, max_conversations: int = 3, max_agents: int = 3, max_requests: int = 5, max_responses: int = 5):
         self.agent = None
         self.max_conversations = max_conversations
@@ -702,10 +664,9 @@ class MainInterfaceAgentSystem:
             self.max_conversations, self.max_agents, self.max_requests, self.max_responses
         )
         return self.agent is not None
-
+    
     def __getattr__(self, name):
         """Delegate attribute access to the agent"""
         if self.agent:
             return getattr(self.agent, name)
-        raise AttributeError(
-            f"'{type(self).__name__}' object has no attribute '{name}'")
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
