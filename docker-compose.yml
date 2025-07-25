@@ -1,8 +1,6 @@
 # ALIMS Docker Compose Development Environment
 # Based on ALIMS System Improvement Plan Phase 1.2
 
-version: '3.8'
-
 services:
   # ===== BACKEND SERVICES =====
   
@@ -11,6 +9,9 @@ services:
     container_name: alims-api-gateway
     ports:
       - "8000:8000"
+    volumes:
+      # Mount source code for hot reloading
+      - ./backend/app/api_gateway:/app:cached
     depends_on:
       - postgres
       - redis
@@ -22,6 +23,7 @@ services:
       - WORKFLOW_SERVICE_URL=http://workflow-manager:8002
       - PREDICATE_LOGIC_SERVICE_URL=http://predicate-logic-engine:8001
       - LOG_LEVEL=INFO
+      - ENVIRONMENT=development
     networks:
       - alims-network
     restart: unless-stopped
@@ -40,6 +42,10 @@ services:
       - REDIS_URL=redis://redis:6379
       - PREDICATE_LOGIC_SERVICE_URL=http://predicate-logic-engine:8001
       - LOG_LEVEL=INFO
+      - ENVIRONMENT=development
+    volumes:
+      - ./backend/app/workflow_manager:/app:cached
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
     networks:
       - alims-network
     restart: unless-stopped
@@ -56,6 +62,10 @@ services:
       - DATABASE_URL=postgresql://alims:${DB_PASSWORD:-alimsdev}@postgres:5432/alims
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=INFO
+      - ENVIRONMENT=development
+    volumes:
+      - ./backend/app/predicate_logic:/app:cached
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
     networks:
       - alims-network
     restart: unless-stopped
@@ -67,6 +77,11 @@ services:
     container_name: alims-main-interface
     ports:
       - "8003:8003"
+    volumes:
+      # Mount source code for hot reloading in development
+      - ./backend:/app:cached
+      # Mount logs for easier access
+      - ./logs:/app/logs:cached
     depends_on:
       - postgres
       - redis
@@ -78,6 +93,12 @@ services:
       - VECTOR_DB_URL=http://vector-db:6333
       - OLLAMA_URL=http://ollama:11434
       - LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+      - ENVIRONMENT=development
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=${LANGFUSE_HOST}
+    command: ["uvicorn", "simple_api_server:app", "--host", "0.0.0.0", "--port", "8003", "--reload", "--reload-dir", "/app"]
     networks:
       - alims-network
     restart: unless-stopped

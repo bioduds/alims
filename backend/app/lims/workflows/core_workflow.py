@@ -16,10 +16,46 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 import asyncio
 from datetime import datetime
+import logging
+import time
 
 from ..models import SampleState, LIMSSystemState, SampleWorkflow
 from ..agents.sample_reception import receive_sample, SampleReceptionRequest
 from ..agents.sample_accessioning import accession_sample, SampleAccessionRequest
+
+# Langfuse monitoring integration
+try:
+    from langfuse import Langfuse, observe
+    LANGFUSE_AVAILABLE = True
+    
+    # Mock langfuse_context for compatibility
+    class MockLangfuseContext:
+        def configure(self, **kwargs):
+            return self
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+    langfuse_context = MockLangfuseContext()
+    
+except ImportError:
+    LANGFUSE_AVAILABLE = False
+    def observe(*args, **kwargs):
+        """Fallback decorator when Langfuse is not available"""
+        def decorator(func):
+            return func
+        return decorator
+    
+    class MockLangfuseContext:
+        def configure(self, **kwargs):
+            return self
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+    langfuse_context = MockLangfuseContext()
+
+logger = logging.getLogger(__name__)
 
 
 class WorkflowState(TypedDict):
@@ -39,6 +75,11 @@ class WorkflowState(TypedDict):
     messages: Annotated[List[str], add_messages]
     errors: List[str]
     completed_steps: List[str]
+    
+    # Monitoring and observability
+    workflow_id: Optional[str]
+    trace_id: Optional[str]
+    step_timings: Dict[str, Dict[str, float]]
     
     # Agent responses
     reception_response: Optional[Dict[str, Any]]
@@ -68,6 +109,96 @@ class CoreLIMSWorkflow:
     def __init__(self, lims_system: LIMSSystemState):
         self.lims_system = lims_system
         self.workflow_graph = self._build_workflow_graph()
+        
+        # Initialize Langfuse monitoring if available
+        self.langfuse = None
+        if LANGFUSE_AVAILABLE:
+            try:
+                import os
+                public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
+                secret_key = os.getenv("LANGFUSE_SECRET_KEY")
+                host = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")
+                
+                if public_key and secret_key:
+                    self.langfuse = Langfuse(
+                        public_key=public_key,
+                        secret_key=secret_key,
+                        host=host
+                    )
+                    logger.info("Langfuse monitoring enabled for LIMS workflows")
+                else:
+                    logger.warning("Langfuse credentials not found - monitoring disabled")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Langfuse: {e}")
+        
+    def _create_trace(self, priority: str, initiated_by: str) -> str:
+        """Create a Langfuse trace for workflow monitoring"""
+        if not self.langfuse:
+            return f"workflow_{int(time.time())}"
+            
+        trace_id = f"lims_workflow_{int(time.time())}"
+        
+        try:
+            self.langfuse.trace(
+                id=trace_id,
+                name="LIMS_Sample_Workflow",
+                input={
+                    "priority": priority,
+                    "initiated_by": initiated_by,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "system": "ALIMS",
+                    "workflow_type": "TLA_Verified_LIMS",
+                    "tla_specification": "LIMSSampleWorkflow.tla",
+                    "langgraph_version": "0.5.1"
+                },
+                tags=["lims", "tla-verified", "langgraph", priority.lower()]
+            )
+        except Exception as e:
+            logger.warning(f"Failed to create Langfuse trace: {e}")
+            
+        return trace_id
+    
+    def _track_step_start(self, state: WorkflowState, step_name: str):
+        """Track the start of a workflow step"""
+        if step_name not in state["step_timings"]:
+            state["step_timings"][step_name] = {}
+        state["step_timings"][step_name]["start"] = time.time()
+    
+    def _track_step_end(self, state: WorkflowState, step_name: str, success: bool = True):
+        """Track the end of a workflow step and create Langfuse span"""
+        if step_name in state["step_timings"] and "start" in state["step_timings"][step_name]:
+            end_time = time.time()
+            duration = end_time - state["step_timings"][step_name]["start"]
+            state["step_timings"][step_name]["end"] = end_time
+            state["step_timings"][step_name]["duration"] = duration
+            
+            # Create Langfuse span if monitoring is enabled
+            if self.langfuse and state.get("trace_id"):
+                try:
+                    self.langfuse.span(
+                        trace_id=state["trace_id"],
+                        name=f"LIMS_{step_name}",
+                        input={
+                            "step": step_name,
+                            "sample_id": state.get("sample_id"),
+                            "current_state": state["current_state"].value if state.get("current_state") else None
+                        },
+                        output={
+                            "success": success,
+                            "duration_seconds": duration,
+                            "completed_steps": state["completed_steps"]
+                        },
+                        metadata={
+                            "step_type": step_name,
+                            "tla_verified": True,
+                            "error_count": len(state["errors"])
+                        },
+                        level="ERROR" if not success else "DEFAULT"
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to create Langfuse span for {step_name}: {e}")
     
     def _build_workflow_graph(self) -> StateGraph:
         """
@@ -136,8 +267,12 @@ class CoreLIMSWorkflow:
         
         return workflow.compile()
     
+    @observe(name="LIMS_Sample_Reception")
     async def _handle_reception(self, state: WorkflowState) -> WorkflowState:
         """Handle sample reception stage"""
+        step_name = "reception"
+        self._track_step_start(state, step_name)
+        
         try:
             state["messages"].append("Starting sample reception...")
             
@@ -160,19 +295,27 @@ class CoreLIMSWorkflow:
                 state["reception_response"] = response.dict()
                 state["messages"].append(f"Sample {response.sample_id} successfully received")
                 state["completed_steps"].append("reception")
+                self._track_step_end(state, step_name, True)
             else:
                 state["errors"].append(f"Reception failed: {response.message}")
+                self._track_step_end(state, step_name, False)
                 
         except Exception as e:
             state["errors"].append(f"Reception error: {str(e)}")
+            self._track_step_end(state, step_name, False)
         
         return state
     
+    @observe(name="LIMS_Sample_Accessioning")
     async def _handle_accessioning(self, state: WorkflowState) -> WorkflowState:
         """Handle sample accessioning stage"""
+        step_name = "accessioning"
+        self._track_step_start(state, step_name)
+        
         try:
             if not state.get("sample_id"):
                 state["errors"].append("No sample ID available for accessioning")
+                self._track_step_end(state, step_name, False)
                 return state
                 
             state["messages"].append(f"Starting accessioning for sample {state['sample_id']}...")
@@ -202,11 +345,15 @@ class CoreLIMSWorkflow:
                 # Extract special handling requirements
                 if response.recommended_actions:
                     state["special_handling"].extend(response.recommended_actions)
+                    
+                self._track_step_end(state, step_name, True)
             else:
                 state["errors"].append(f"Accessioning failed: {response.message}")
+                self._track_step_end(state, step_name, False)
                 
         except Exception as e:
             state["errors"].append(f"Accessioning error: {str(e)}")
+            self._track_step_end(state, step_name, False)
         
         return state
     
@@ -474,8 +621,12 @@ class CoreLIMSWorkflow:
         Execute the complete LIMS workflow for a sample.
         
         This method runs the entire TLA+ verified workflow from
-        RECEIVED to ARCHIVED state with full audit trail maintenance.
+        RECEIVED to ARCHIVED state with full audit trail maintenance
+        and Langfuse monitoring.
         """
+        
+        # Create monitoring trace
+        trace_id = self._create_trace(priority, initiated_by)
         
         # Initialize workflow state
         initial_state = WorkflowState(
@@ -485,6 +636,9 @@ class CoreLIMSWorkflow:
             messages=[],
             errors=[],
             completed_steps=[],
+            workflow_id=f"workflow_{int(time.time())}",
+            trace_id=trace_id,
+            step_timings={},
             reception_response=None,
             accessioning_response=None,
             scheduling_response=None,
@@ -498,29 +652,91 @@ class CoreLIMSWorkflow:
             special_handling=[]
         )
         
-        # Execute the workflow
-        final_state = await self.workflow_graph.ainvoke(initial_state)
-        
-        # Return comprehensive results
-        return {
-            "success": len(final_state["errors"]) == 0,
-            "sample_id": final_state.get("sample_id"),
-            "final_state": final_state.get("current_state"),
-            "completed_steps": final_state["completed_steps"],
-            "messages": final_state["messages"],
-            "errors": final_state["errors"],
-            "responses": {
-                "reception": final_state.get("reception_response"),
-                "accessioning": final_state.get("accessioning_response"),
-                "scheduling": final_state.get("scheduling_response"),
-                "testing": final_state.get("testing_response"),
-                "qc_review": final_state.get("qc_response"),
-                "reporting": final_state.get("reporting_response"),
-                "archiving": final_state.get("archiving_response")
-            },
-            "special_handling": final_state["special_handling"],
-            "system_invariants": self.lims_system.validate_system_invariants()
-        }
+        try:
+            # Execute the workflow with monitoring
+            if self.langfuse:
+                with langfuse_context.configure(trace_id=trace_id):
+                    final_state = await self.workflow_graph.ainvoke(initial_state)
+            else:
+                final_state = await self.workflow_graph.ainvoke(initial_state)
+            
+            # Complete the monitoring trace
+            if self.langfuse:
+                self._complete_trace(trace_id, final_state)
+            
+            # Return comprehensive results
+            return {
+                "success": len(final_state["errors"]) == 0,
+                "sample_id": final_state.get("sample_id"),
+                "final_state": final_state.get("current_state"),
+                "completed_steps": final_state["completed_steps"],
+                "messages": final_state["messages"],
+                "errors": final_state["errors"],
+                "responses": {
+                    "reception": final_state.get("reception_response"),
+                    "accessioning": final_state.get("accessioning_response"),
+                    "scheduling": final_state.get("scheduling_response"),
+                    "testing": final_state.get("testing_response"),
+                    "qc_review": final_state.get("qc_response"),
+                    "reporting": final_state.get("reporting_response"),
+                    "archiving": final_state.get("archiving_response")
+                },
+                "special_handling": final_state["special_handling"],
+                "system_invariants": self.lims_system.validate_system_invariants(),
+                "monitoring": {
+                    "trace_id": trace_id,
+                    "step_timings": final_state["step_timings"],
+                    "langfuse_enabled": self.langfuse is not None
+                }
+            }
+            
+        except Exception as e:
+            # Track workflow failure
+            if self.langfuse:
+                try:
+                    self.langfuse.trace(
+                        id=trace_id,
+                        output={"error": str(e), "success": False},
+                        level="ERROR"
+                    )
+                except Exception:
+                    pass
+            
+            return {
+                "success": False,
+                "error": str(e),
+                "trace_id": trace_id,
+                "langfuse_enabled": self.langfuse is not None
+            }
+    
+    def _complete_trace(self, trace_id: str, final_state: WorkflowState):
+        """Complete the Langfuse trace with final results"""
+        try:
+            total_duration = sum(
+                timing.get("duration", 0) 
+                for timing in final_state["step_timings"].values()
+            )
+            
+            self.langfuse.trace(
+                id=trace_id,
+                output={
+                    "success": len(final_state["errors"]) == 0,
+                    "sample_id": final_state.get("sample_id"),
+                    "final_state": final_state.get("current_state").value if final_state.get("current_state") else None,
+                    "completed_steps": final_state["completed_steps"],
+                    "error_count": len(final_state["errors"]),
+                    "total_duration_seconds": total_duration,
+                    "step_count": len(final_state["completed_steps"]),
+                    "tla_compliant": len(final_state["errors"]) == 0
+                },
+                metadata={
+                    "step_timings": final_state["step_timings"],
+                    "special_handling": final_state["special_handling"],
+                    "system_invariants": self.lims_system.validate_system_invariants()
+                }
+            )
+        except Exception as e:
+            logger.warning(f"Failed to complete Langfuse trace: {e}")
 
 
 # Example usage and testing

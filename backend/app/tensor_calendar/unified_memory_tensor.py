@@ -298,7 +298,8 @@ class UnifiedMemoryTensorEngine:
                         "entities": memory.semantic_context.entities,
                         "concepts": memory.semantic_context.concepts,
                         "confidence": memory.semantic_context.confidence,
-                        "embedding_model": memory.semantic_context.embedding_model
+                        # Fix: access embedding_model from memory, not semantic_context
+                        "embedding_model": memory.embedding_model
                     },
                     
                     # Contextual dimension

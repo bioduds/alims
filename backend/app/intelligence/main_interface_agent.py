@@ -24,11 +24,30 @@ TLA+ Validated: ✅
 import asyncio
 import logging
 import uuid
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Set, Any
 import json
+
+# Import debug system for crazy talk detection and monitoring
+from app.debug import (
+    get_debug_system, get_agent_tracker,
+    EventType, AgentStatus, create_event
+)
+
+# Import Langfuse tracing decorators
+from app.core.langfuse_tracing import trace_operation, OperationType, TraceLevel
+
+# Conditional import of Ollama integration (only if dependencies are available)
+try:
+    from app.intelligence.ollama_integration import OllamaLIMSAgent
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+    OllamaLIMSAgent = None
+    # Note: logger not available yet, will log this in __init__
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +188,274 @@ class MainInterfaceAgent:
         # Integration state tracking
         self._initialized = False
 
+        # Initialize debug system for crazy talk detection and monitoring
+        self.debug_system = get_debug_system()
+        self.agent_tracker = get_agent_tracker()
+        self.agent_id = "main_interface_agent"
+        self.agent_tracker.register_agent(self.agent_id, "main_interface")
+
+        # Set up monitoring for all agent state changes
+        self.agent_tracker.add_state_change_callback(
+            self._on_agent_state_change)
+
+        # Initialize Ollama LLM agent for intelligent responses (with Langfuse tracing)
+        if OLLAMA_AVAILABLE:
+            try:
+                self.ollama_agent = OllamaLIMSAgent()
+                self.logger.info("Initialized Ollama LLM agent with Langfuse tracing")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize Ollama agent: {e}")
+                self.ollama_agent = None
+        else:
+            self.ollama_agent = None
+            self.logger.info("Ollama integration not available - using enhanced fallback responses")
+
+        self.logger.info("MainInterfaceAgent initialized with debug system")
+
+    def _on_agent_state_change(self, agent_id: str, new_state):
+        """Monitor agent state changes for debugging"""
+        self.logger.info(f"Agent {agent_id} state: {new_state.status.value}")
+
+        if new_state.status == AgentStatus.ERROR:
+            self.logger.warning(f"🚨 Agent {agent_id} in ERROR state!")
+
+            # Get recent events for analysis
+            recent_events = self.debug_system.get_recent_events(5)
+            agent_events = [e for e in recent_events if e.agent_id == agent_id]
+
+            for event in agent_events[-3:]:
+                self.logger.warning(
+                    f"  📋 {event.event_type.value}: {event.message}")
+
+    def _debug_check_crazy_talk(self, response: str) -> bool:
+        """Check if response contains crazy talk patterns"""
+        indicators = [
+            len(response) > 1000,  # Extremely long responses
+            "banana elephant quantum" in response.lower(),
+            "NULL_POINTER_EXCEPTION" in response,
+            "TypeError:" in response,
+            "recursive loop" in response.lower(),
+            response.count("and") > 15,
+            response.count("the") > 30,
+            len(response.split()) > 300,
+            "Exception" in response and "Error" in response,  # Code errors
+        ]
+        return any(indicators)
+
+    async def process_user_request_with_debug(
+        self,
+        user_input: str,
+        user_id: Optional[str] = None,
+        conversation_id: Optional[str] = None,
+        request_type: RequestType = RequestType.AGENT_REQUEST,
+        priority: Priority = Priority.MEDIUM
+    ) -> str:
+        """
+        Process user request with full debug tracking for crazy talk detection
+        This is the main entry point for processing user requests with monitoring
+        """
+
+        # Generate conversation ID if needed
+        if conversation_id is None:
+            conversation_id = await self.start_conversation(user_id)
+
+        # Start debug tracking
+        self.agent_tracker.start_conversation(self.agent_id, conversation_id)
+        self.agent_tracker.record_message_received(
+            self.agent_id,
+            f"User: {user_input[:100]}...",
+            conversation_id
+        )
+        self.agent_tracker.update_agent_status(
+            self.agent_id,
+            AgentStatus.BUSY,
+            "Processing user request"
+        )
+
+        start_time = time.time()
+
+        try:
+            # Log processing start
+            event = create_event(
+                agent_id=self.agent_id,
+                event_type=EventType.PROCESS,
+                message=f"Processing request: {user_input[:50]}...",
+                conversation_id=conversation_id
+            )
+            self.debug_system.record_event(event)
+
+            # Process using existing TLA+ verified workflow
+            await self.receive_user_request(
+                conversation_id=conversation_id,
+                content=user_input,
+                request_type=request_type,
+                priority=priority,
+                user_id=user_id
+            )
+
+            # Orchestrate and get response
+            await self.analyze_and_orchestrate()
+
+            # Simulate getting response (replace with your actual response logic)
+            response = await self._get_final_response(conversation_id, user_input)
+
+            # Check for crazy talk
+            if self._debug_check_crazy_talk(response):
+                self.agent_tracker.record_error(
+                    self.agent_id,
+                    f"Crazy talk detected: {response[:100]}...",
+                    conversation_id
+                )
+                response = "I apologize, but I need to rephrase my response. Could you please be more specific about what you need help with?"
+
+            # Record successful response
+            processing_time = time.time() - start_time
+            self.agent_tracker.record_message_response(
+                self.agent_id,
+                f"Response: {response[:100]}...",
+                processing_time,
+                conversation_id
+            )
+
+            # Update status
+            self.agent_tracker.update_agent_status(
+                self.agent_id,
+                AgentStatus.READY,
+                "Request completed successfully"
+            )
+
+            return response
+
+        except Exception as e:
+            # Record error with context
+            error_msg = f"Error processing '{user_input[:50]}...': {str(e)}"
+            self.agent_tracker.record_error(
+                self.agent_id, error_msg, conversation_id)
+
+            self.logger.error(f"MainInterfaceAgent error: {error_msg}")
+            return "I apologize, but I encountered an error processing your request. Please try again."
+
+        finally:
+            # End conversation tracking
+            self.agent_tracker.end_conversation(self.agent_id, conversation_id)
+
+    @trace_operation(OperationType.API, "get_final_response", include_args=True, include_result=True)
+    async def _get_final_response(self, conversation_id: str, user_input: str) -> str:
+        """
+        Get final response for user request using Ollama LLM with Langfuse tracing
+        This method now integrates with the traced Ollama integration
+        """
+
+        # Process pending requests and responses using TLA+ logic
+        await self.process_next_request()
+
+        # Get conversation history to build context
+        history = await self.get_conversation_history(conversation_id)
+
+        # Build context for the LLM
+        context_messages = []
+        if history and 'messages' in history:
+            # Add recent conversation history
+            # Last 5 messages for context
+            context_messages = history['messages'][-5:]
+
+        # Create a comprehensive LIMS system prompt
+        system_prompt = """You are ALIMS (Advanced Laboratory Information Management System) Assistant.
+You are an expert in laboratory operations, sample management, workflow coordination, and data analysis.
+
+Your capabilities include:
+- Sample tracking and lifecycle management
+- Laboratory workflow coordination
+- Quality control and compliance monitoring
+- Data analysis and reporting
+- Equipment management and maintenance
+- Protocol and SOP guidance
+
+Always provide helpful, accurate, and contextually relevant responses for laboratory operations.
+If you need more specific information to provide a better answer, ask clarifying questions."""
+
+        try:
+            # Use the traced Ollama integration to generate response if available
+            if self.ollama_agent:
+                response = await self.ollama_agent.process_user_input_enhanced(
+                    user_input=user_input,
+                    conversation_context=context_messages,
+                    system_prompt=system_prompt
+                )
+                
+                self.logger.info(
+                    f"Generated LLM response for conversation {conversation_id}")
+                return response
+            else:
+                # Fallback to intelligent rule-based responses
+                return self._generate_fallback_response(user_input)
+                
+        except Exception as e:
+            self.logger.error(f"Error generating LLM response: {e}")
+            # Fallback to basic response if LLM fails
+            return self._generate_fallback_response(user_input, error=str(e)[:100])
+    
+    def _generate_fallback_response(self, user_input: str, error: Optional[str] = None) -> str:
+        """Generate intelligent fallback responses when Ollama is not available"""
+        
+        # *** MANUAL LANGFUSE TRACING FOR DEBUGGING ***
+        try:
+            from app.core.langfuse_tracing import get_tracker, OperationType
+            import asyncio
+            
+            async def send_manual_trace():
+                try:
+                    tracer = await get_tracker()
+                    if tracer and tracer.langfuse_client:
+                        # Create a manual trace for the fallback response
+                        tracer.langfuse_client.create_event(
+                            name="fallback_response_generated",
+                            metadata={
+                                "user_input": user_input[:200],
+                                "error": error,
+                                "response_type": "fallback",
+                                "timestamp": str(__import__('time').time()),
+                                "source": "main_interface_agent_fallback"
+                            }
+                        )
+                        tracer.langfuse_client.flush()
+                        self.logger.info("🔥 MANUAL TRACE SENT TO LANGFUSE!")
+                except Exception as e:
+                    self.logger.error(f"Manual trace failed: {e}")
+            
+            # Run the async trace
+            try:
+                loop = asyncio.get_event_loop()
+                loop.create_task(send_manual_trace())
+            except:
+                asyncio.run(send_manual_trace())
+                
+        except Exception as e:
+            self.logger.error(f"Failed to send manual trace: {e}")
+        
+        base_error = f" (Error: {error})" if error else ""
+        
+        # Enhanced rule-based responses
+        user_lower = user_input.lower()
+        
+        if any(word in user_lower for word in ["sample", "specimen", "tracking"]):
+            return f"I can help you with sample tracking and management. Our LIMS system provides comprehensive sample lifecycle management including registration, tracking, testing status, and results reporting. Could you provide more details about the specific sample you're working with?{base_error}"
+        
+        elif any(word in user_lower for word in ["workflow", "process", "protocol"]):
+            return f"I can assist with laboratory workflow management. Our system supports automated workflow orchestration, protocol compliance, and process optimization. What specific workflow operation would you like to perform?{base_error}"
+        
+        elif any(word in user_lower for word in ["data", "analysis", "report", "result"]):
+            return f"I can help with data analysis and reporting. Our LIMS system provides advanced analytics, trend analysis, and customizable reporting capabilities. Please specify what type of data analysis you'd like to perform?{base_error}"
+        
+        elif any(word in user_lower for word in ["quality", "qc", "control", "compliance"]):
+            return f"I can assist with quality control and compliance monitoring. Our system ensures adherence to laboratory standards, automated QC checks, and comprehensive audit trails. What quality control aspect can I help you with?{base_error}"
+        
+        elif any(word in user_lower for word in ["equipment", "instrument", "calibration"]):
+            return f"I can help with equipment and instrument management. Our system tracks equipment status, maintenance schedules, calibration records, and utilization metrics. Which equipment or instrument do you need assistance with?{base_error}"
+        
+        else:
+            return f"I'm ALIMS (Advanced Laboratory Information Management System) Assistant. I can help you with sample management, workflow coordination, data analysis, quality control, and equipment management. Could you please specify what aspect of laboratory operations you need assistance with?{base_error}"
+
     async def initialize(self) -> bool:
         """
         Initialize the Main Interface Agent
@@ -267,6 +554,7 @@ class MainInterfaceAgent:
             self.logger.info(f"Started conversation {conversation_id}")
             return conversation_id
 
+    @trace_operation(OperationType.AGENT, "receive_user_request", include_args=True)
     async def receive_user_request(
         self,
         conversation_id: str,
@@ -281,17 +569,50 @@ class MainInterfaceAgent:
         Following TLA+ specification ProcessUserRequest action
         """
         async with self._state_lock:
+            # Debug tracking
+            event = create_event(
+                agent_id=self.agent_id,
+                event_type=EventType.RECEIVE_MESSAGE,
+                message=f"Received request: {content[:100]}...",
+                conversation_id=conversation_id
+            )
+            self.debug_system.record_event(event)
+
             if conversation_id not in self.conversations:
                 self.logger.error(f"Conversation {conversation_id} not found")
+                # Debug error tracking
+                error_event = create_event(
+                    agent_id=self.agent_id,
+                    event_type=EventType.ERROR,
+                    message=f"Conversation {conversation_id} not found",
+                    conversation_id=conversation_id
+                )
+                self.debug_system.record_event(error_event)
                 return False
 
             if self.conversations[conversation_id].state != ConversationState.ACTIVE:
                 self.logger.error(f"Conversation {conversation_id} not active")
+                # Debug error tracking
+                error_event = create_event(
+                    agent_id=self.agent_id,
+                    event_type=EventType.ERROR,
+                    message=f"Conversation {conversation_id} not active",
+                    conversation_id=conversation_id
+                )
+                self.debug_system.record_event(error_event)
                 return False
 
             if len(self.user_requests) >= self.max_requests:
                 self.logger.warning(
                     f"Maximum requests ({self.max_requests}) reached")
+                # Debug warning tracking
+                warning_event = create_event(
+                    agent_id=self.agent_id,
+                    event_type=EventType.WARNING,
+                    message=f"Maximum requests ({self.max_requests}) reached",
+                    conversation_id=conversation_id
+                )
+                self.debug_system.record_event(warning_event)
                 return False
 
             request = UserRequest(

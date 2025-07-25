@@ -1,6 +1,8 @@
 """
 Ollama Integration for Enhanced Main Interface Agent
 Provides intelligent LLM-powered responses for LIMS agent interactions.
+
+Now includes comprehensive Langfuse tracing for all LLM operations.
 """
 
 import logging
@@ -8,6 +10,11 @@ from typing import Dict, Any, Optional, List
 import aiohttp
 import json
 import asyncio
+
+# Import our TLA+ validated tracing system
+from ..core.langfuse_tracing import (
+    trace_operation, trace_context, OperationType, TraceLevel
+)
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +98,7 @@ Provide helpful, accurate, and professional responses to laboratory-related quer
             await self.session.close()
             self.session = None
     
+    @trace_operation(OperationType.LLM, "ollama_health_check", level=TraceLevel.DEBUG)
     async def _health_check(self):
         """Check if Ollama is running and model is available"""
         try:
@@ -111,6 +119,7 @@ Provide helpful, accurate, and professional responses to laboratory-related quer
             logger.error(f"Ollama health check error: {e}")
             return False
     
+    @trace_operation(OperationType.LLM, "ollama_generate_response", include_args=True, include_result=True)
     async def generate_response(self, 
                               message: str, 
                               agent_id: str = "default",
@@ -121,23 +130,31 @@ Provide helpful, accurate, and professional responses to laboratory-related quer
         if not self.session:
             await self.initialize()
         
-        try:
-            # Build the prompt
-            system_prompt = self.agent_prompts.get(agent_id, self.agent_prompts["default"])
-            prompt = await self._build_prompt(message, system_prompt, context, conversation_history)
-            
-            # Generate response from Ollama
-            response = await self._call_ollama(prompt)
-            
-            # Process and validate response
-            processed_response = self._process_response(response, agent_id)
-            
-            logger.info(f"Generated response for agent {agent_id}: {len(processed_response)} characters")
-            return processed_response
-            
-        except Exception as e:
-            logger.error(f"Error generating Ollama response: {e}")
-            return self._fallback_response(message, agent_id)
+        async with trace_context(OperationType.LLM, f"ollama_chat_{agent_id}", {
+            "agent_id": agent_id,
+            "message_length": len(message),
+            "has_context": bool(context),
+            "history_length": len(conversation_history) if conversation_history else 0
+        }) as trace_id:
+            try:
+                # Build the prompt
+                system_prompt = self.agent_prompts.get(
+                    agent_id, self.agent_prompts["default"])
+                prompt = await self._build_prompt(message, system_prompt, context, conversation_history)
+
+                # Generate response from Ollama
+                response = await self._call_ollama(prompt)
+
+                # Process and validate response
+                processed_response = self._process_response(response, agent_id)
+
+                logger.info(
+                    f"Generated response for agent {agent_id}: {len(processed_response)} characters")
+                return processed_response
+
+            except Exception as e:
+                logger.error(f"Error generating Ollama response: {e}")
+                return self._fallback_response(message, agent_id)
     
     async def _build_prompt(self, 
                            message: str, 
@@ -179,6 +196,7 @@ Provide helpful, accurate, and professional responses to laboratory-related quer
         
         return "\n".join(prompt_parts)
     
+    @trace_operation(OperationType.LLM, "ollama_api_call", level=TraceLevel.DEBUG)
     async def _call_ollama(self, prompt: str) -> str:
         """Make API call to Ollama"""
         url = f"{self.base_url}/api/generate"
@@ -262,78 +280,87 @@ class OllamaIntegratedMainInterfaceAgent:
             logger.warning(f"Failed to initialize Ollama client: {e}")
             self.ollama_available = False
     
+    @trace_operation(OperationType.AGENT, "process_user_input_enhanced", include_args=True)
     async def process_user_input(self, conversation_id: str, message: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Enhanced user input processing with Ollama responses"""
         
-        # Get conversation and agent information
-        conversation = self.base_agent.conversations.get(conversation_id)
-        if not conversation:
-            raise ValueError(f"Conversation {conversation_id} not found")
-        
-        # Get assigned agent
-        assigned_agent = conversation.assigned_agent
-        
-        # Store message in conversation context
-        if 'messages' not in conversation.context:
-            conversation.context['messages'] = []
-        
-        conversation.context['messages'].append({
-            'role': 'user',
-            'content': message,
-            'timestamp': asyncio.get_event_loop().time(),
-            'context': context
-        })
-        
-        # Generate intelligent response
-        if self.ollama_available and self.ollama_client:
-            try:
-                # Get conversation history for context
-                conversation_history = conversation.context.get('messages', [])[-5:]  # Last 5 messages
-                
-                # Combine contexts
-                full_context = {**conversation.context, **(context or {})}
-                
-                # Generate Ollama response
-                response = await self.ollama_client.generate_response(
-                    message=message,
-                    agent_id=assigned_agent or "default",
-                    context=full_context,
-                    conversation_history=conversation_history
-                )
-                
-                # Store response
-                conversation.context['messages'].append({
-                    'role': 'assistant',
-                    'content': response,
-                    'timestamp': asyncio.get_event_loop().time(),
-                    'agent_id': assigned_agent
-                })
-                
-            except Exception as e:
-                logger.error(f"Error generating Ollama response: {e}")
-                response = f"I apologize, but I'm experiencing technical difficulties. Please try again. (Error: {str(e)[:50]})"
-        else:
-            # Fallback to base agent response
-            base_response = await self.base_agent.process_user_input(conversation_id, message, context)
-            response = base_response.get("response", "")
-        
-        # Update audit
-        self.base_agent._add_audit_event("MESSAGE_PROCESSED_OLLAMA", 
-                                       conversation_id=conversation_id,
-                                       details={
-                                           "message_length": len(message),
-                                           "response_length": len(response),
-                                           "ollama_used": self.ollama_available,
-                                           "agent_id": assigned_agent
-                                       })
-        
-        return {
-            "response": response,
-            "status": "processed",
+        async with trace_context(OperationType.AGENT, f"conversation_{conversation_id}", {
             "conversation_id": conversation_id,
-            "agent_id": assigned_agent,
-            "ollama_powered": self.ollama_available
-        }
+            "message_length": len(message),
+            "has_context": bool(context),
+            "ollama_available": self.ollama_available
+        }) as trace_id:
+
+            # Get conversation and agent information
+            conversation = self.base_agent.conversations.get(conversation_id)
+            if not conversation:
+                raise ValueError(f"Conversation {conversation_id} not found")
+
+            # Get assigned agent
+            assigned_agent = conversation.assigned_agent
+
+            # Store message in conversation context
+            if 'messages' not in conversation.context:
+                conversation.context['messages'] = []
+
+            conversation.context['messages'].append({
+                'role': 'user',
+                'content': message,
+                'timestamp': asyncio.get_event_loop().time(),
+                'context': context
+            })
+
+            # Generate intelligent response
+            if self.ollama_available and self.ollama_client:
+                try:
+                    # Get conversation history for context
+                    conversation_history = conversation.context.get(
+                        'messages', [])[-5:]  # Last 5 messages
+
+                    # Combine contexts
+                    full_context = {**conversation.context, **(context or {})}
+
+                    # Generate Ollama response
+                    response = await self.ollama_client.generate_response(
+                        message=message,
+                        agent_id=assigned_agent or "default",
+                        context=full_context,
+                        conversation_history=conversation_history
+                    )
+
+                    # Store response
+                    conversation.context['messages'].append({
+                        'role': 'assistant',
+                        'content': response,
+                        'timestamp': asyncio.get_event_loop().time(),
+                        'agent_id': assigned_agent
+                    })
+
+                except Exception as e:
+                    logger.error(f"Error generating Ollama response: {e}")
+                    response = f"I apologize, but I'm experiencing technical difficulties. Please try again. (Error: {str(e)[:50]})"
+            else:
+                # Fallback to base agent response
+                base_response = await self.base_agent.process_user_input(conversation_id, message, context)
+                response = base_response.get("response", "")
+
+            # Update audit
+            self.base_agent._add_audit_event("MESSAGE_PROCESSED_OLLAMA",
+                                             conversation_id=conversation_id,
+                                             details={
+                                                 "message_length": len(message),
+                                                 "response_length": len(response),
+                                                 "ollama_used": self.ollama_available,
+                                                 "agent_id": assigned_agent
+                                             })
+
+            return {
+                "response": response,
+                "status": "processed",
+                "conversation_id": conversation_id,
+                "agent_id": assigned_agent,
+                "ollama_powered": self.ollama_available
+            }
     
     async def shutdown(self):
         """Shutdown both base agent and Ollama client"""

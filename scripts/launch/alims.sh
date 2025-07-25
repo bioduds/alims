@@ -7,13 +7,15 @@ set -e
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$PROJECT_ROOT"
 
-# PID files
-AI_PID_FILE="ai_api_server.pid"
-MAIN_PID_FILE="main_system.pid"
-TRAY_PID_FILE="tray.pid"
-TAURI_PID_FILE="tauri_tray.pid"
+# PID files in runtime directory
+RUNTIME_DIR="$PROJECT_ROOT/runtime"
+AI_PID_FILE="$RUNTIME_DIR/ai_api_server.pid"
+MAIN_PID_FILE="$RUNTIME_DIR/main_system.pid"
+TRAY_PID_FILE="$RUNTIME_DIR/tray.pid"
+TAURI_PID_FILE="$RUNTIME_DIR/tauri_tray.pid"
 
 # Colors for output
 RED='\033[0;31m'
@@ -72,40 +74,60 @@ check_ollama() {
     success "Ollama service ready"
 }
 
-# Start AI API server
+# Start AI API server (Docker-based)
 start_ai_server() {
-    if is_running "$AI_PID_FILE"; then
-        warn "AI server already running"
+    # Check if Docker main-interface service is running
+    if docker-compose ps main-interface | grep -q "Up.*healthy"; then
+        success "ALIMS AI server running (Docker: main-interface)"
         return 0
     fi
     
-    log "Starting ALIMS AI server..."
-    source alims_env/bin/activate 2>/dev/null || {
-        error "Virtual environment not found. Run: python -m venv alims_env && source alims_env/bin/activate && pip install -r backend/requirements/base.txt"
+    log "Starting ALIMS AI server via Docker..."
+    if ! docker-compose up -d main-interface; then
+        error "Failed to start Docker main-interface service"
         return 1
-    }
+    fi
     
-    cd backend
-    python -m app.main >/dev/null 2>&1 &
-    echo $! > "../$AI_PID_FILE"
-    cd ..
+    # Wait for service to be healthy
+    local max_wait=30
+    local wait_time=0
+    while [ $wait_time -lt $max_wait ]; do
+        if docker-compose ps main-interface | grep -q "Up.*healthy"; then
+            success "ALIMS AI server started (Docker: main-interface)"
+            return 0
+        fi
+        sleep 2
+        wait_time=$((wait_time + 2))
+        log "Waiting for main-interface to be healthy... ($wait_time/$max_wait)"
+    done
     
-    success "AI server started"
+    warn "Main-interface service started but may not be fully healthy yet"
+    return 0
 }
 
-# Start main system
+# Start main system (Docker-based)
 start_main_system() {
-    if is_running "$MAIN_PID_FILE"; then
-        warn "Main system already running"
-        return 0
-    fi
+    # Check if all core Docker services are running
+    local core_services=("postgres" "redis" "vector-db" "ollama")
     
-    log "Starting ALIMS main system..."
-    source alims_env/bin/activate
-    python backend/scripts/alims.py >/dev/null 2>&1 &
-    echo $! > "$MAIN_PID_FILE"
+    for service in "${core_services[@]}"; do
+        if ! docker-compose ps "$service" | grep -q "Up"; then
+            log "Starting core infrastructure service: $service"
+            docker-compose up -d "$service"
+        fi
+    done
     
-    success "Main system started"
+    # Check additional services
+    local app_services=("api-gateway" "workflow-manager" "predicate-logic-engine")
+    for service in "${app_services[@]}"; do
+        if ! docker-compose ps "$service" | grep -q "Up"; then
+            log "Starting application service: $service"
+            docker-compose up -d "$service"
+        fi
+    done
+    
+    success "ALIMS main system running (Docker services)"
+    return 0
 }
 
 # Start desktop interface
@@ -158,21 +180,26 @@ status() {
     log "ALIMS System Status:"
     echo
     
-    local services=("AI Server:$AI_PID_FILE" "Main System:$MAIN_PID_FILE" "Desktop App:$TAURI_PID_FILE" "System Tray:$TRAY_PID_FILE")
+    # Check Docker services
+    log "Docker Services:"
+    local docker_services=("main-interface:8003" "api-gateway:8000" "workflow-manager:8002" "predicate-logic-engine:8001" "postgres:5432" "redis:6379" "vector-db:6333" "elasticsearch:9200")
     
-    for service in "${services[@]}"; do
+    for service in "${docker_services[@]}"; do
         local name="${service%:*}"
-        local pid_file="${service#*:}"
+        local port="${service#*:}"
         
-        if is_running "$pid_file"; then
-            local pid=$(cat "$pid_file")
-            success "$name (PID: $pid)"
+        if docker-compose ps "$name" | grep -q "Up.*healthy\|Up.*([0-9]"; then
+            local status=$(docker-compose ps "$name" | grep "$name" | awk '{for(i=4;i<=NF;i++) printf "%s ", $i; print ""}' | sed 's/[ ]*$//')
+            success "$name ($status)"
+        elif docker-compose ps "$name" | grep -q "Up"; then
+            warn "$name (Running but may be unhealthy)"
         else
             error "$name (Not running)"
         fi
     done
     
     echo
+    # Check Ollama
     if command -v ollama >/dev/null 2>&1 && pgrep -f "ollama serve" >/dev/null; then
         success "Ollama service (Running)"
     else

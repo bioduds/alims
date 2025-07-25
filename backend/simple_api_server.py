@@ -4,6 +4,7 @@ Simplified FastAPI server for ALIMS frontend
 This creates a minimal working API server that the frontend can connect to
 with proper AI agent integration for natural conversations.
 Updated to use TLA+ verified Main Interface Agent for formal orchestration.
+Enhanced with comprehensive debugging and tracing capabilities.
 """
 
 from app.tensor_calendar.unified_memory_tensor import UnifiedMemoryTensorEngine
@@ -39,12 +40,17 @@ from app.intelligence.main_interface_agent import (
     create_main_interface_agent
 )
 
+# Enhanced debugging imports
+from app.core.debug_system import get_debug_tracer, DebugLevel
+from app.core.main_interface_debug import MainInterfaceAgentDebugMixin, DebugEndpoints
+from app.core.debug_dashboard import debug_dashboard
+
 # Memory system imports
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'app'))
 
-# Setup logging
+# Setup enhanced logging with debugging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -2145,6 +2151,104 @@ async def get_memory_stats():
             "success": False,
             "error": str(e)
         }
+
+# ===== DEBUGGING AND MONITORING ENDPOINTS =====
+
+
+@app.get("/api/v1/debug/status")
+async def get_debug_status():
+    """Get overall debug system status"""
+    try:
+        debug_tracer = get_debug_tracer()
+        debug_tracer.trace_agent_event(
+            agent_id="api_server",
+            agent_type="APIServer",
+            event_type="DEBUG_STATUS_REQUEST",
+            message="Debug status requested via API",
+            level=DebugLevel.INFO
+        )
+        return DebugEndpoints.get_debug_status()
+    except Exception as e:
+        logger.error(f"Error getting debug status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/debug/conversation/{conversation_id}")
+async def get_conversation_debug(conversation_id: str):
+    """Get debug trace for specific conversation"""
+    try:
+        return DebugEndpoints.get_conversation_debug(conversation_id)
+    except Exception as e:
+        logger.error(f"Error getting conversation debug: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/debug/agent/{agent_id}")
+async def get_agent_debug_state(agent_id: str):
+    """Get current debug state for specific agent"""
+    try:
+        return DebugEndpoints.get_agent_state(agent_id)
+    except Exception as e:
+        logger.error(f"Error getting agent state: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/debug/events/recent")
+async def get_recent_debug_events(limit: int = 50):
+    """Get recent debug events"""
+    try:
+        debug_tracer = get_debug_tracer()
+        recent_events = sorted(
+            debug_tracer.trace_events,
+            key=lambda x: x.timestamp,
+            reverse=True
+        )[:limit]
+
+        return {
+            "success": True,
+            "events": [event.to_dict() for event in recent_events],
+            "total_events": len(debug_tracer.trace_events)
+        }
+    except Exception as e:
+        logger.error(f"Error getting recent events: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/debug/performance")
+async def get_performance_metrics():
+    """Get performance metrics for debugging"""
+    try:
+        debug_tracer = get_debug_tracer()
+        return {
+            "success": True,
+            "metrics": debug_tracer.get_performance_summary()
+        }
+    except Exception as e:
+        logger.error(f"Error getting performance metrics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/debug/trace/conversation/{conversation_id}")
+async def enable_conversation_tracing(conversation_id: str):
+    """Enable detailed tracing for a specific conversation"""
+    try:
+        debug_tracer = get_debug_tracer()
+        debug_tracer.trace_agent_event(
+            agent_id="api_server",
+            agent_type="APIServer",
+            event_type="TRACING_ENABLED",
+            message=f"Detailed tracing enabled for conversation {conversation_id}",
+            data={"conversation_id": conversation_id},
+            level=DebugLevel.INFO,
+            conversation_id=conversation_id
+        )
+        return {"success": True, "message": f"Tracing enabled for conversation {conversation_id}"}
+    except Exception as e:
+        logger.error(f"Error enabling tracing: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Mount debug dashboard at /debug (accessible at http://localhost:8003/debug)
+app.mount("/debug", debug_dashboard.app)
 
 # Run server
 if __name__ == "__main__":

@@ -6,6 +6,11 @@ pydantic-ai[ollama]>=0.0.13
 langgraph>=0.2.0
 langchain>=0.3.0
 
+# Observability and monitoring
+langfuse>=2.55.0
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+
 # Ollama for local AI models
 ollama>=0.3.0
 
